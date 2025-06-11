@@ -9,22 +9,11 @@ const attendanceRoutes = require('./routes/attendance');
 dotenv.config();
 
 const app = express();
-
-// Middleware
-// app.use(cors());
-const allowedOrigins = [
-  'http://localhost:3000', // for local React frontend
-  'https://ikc-webapp.netlify.app' // for deployed frontend
-];
-
+// Enable CORS for all routes
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
+  origin: ['https://ikc-webapp.netlify.app'],  // frontend Netlify URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],   // allowed methods
+  credentials: true                             // if using cookies or auth headers
 }));
 app.use(express.json());
 
