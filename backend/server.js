@@ -3,58 +3,68 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
+
+// Load env variables
+dotenv.config();
+
 const uploadRoutes = require('./routes/upload');
 const attendanceRoutes = require('./routes/attendance');
 
-dotenv.config();
-
 const app = express();
 
-// 👇 Log all incoming request origins
+// ✅ Log origin for debugging
 app.use((req, res, next) => {
   console.log('Incoming request from Origin:', req.headers.origin);
   next();
 });
 
-// ✅ Enable CORS
+// ✅ Allowed CORS origins
 const allowedOrigins = [
   'https://ikc-webapp.netlify.app',
-  'http://localhost:5173' // for local testing (optional)
+  'http://localhost:5173' // local dev
 ];
 
+// ✅ CORS middleware
 app.use(cors({
-  origin: "https://ikc-webapp.netlify.app", // no trailing slash
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (e.g., curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: [
-    "Origin",
-    "Content-Type",
-    "Accept",
-    "Authorization",
-    "X-Requested-With"
+    'Origin',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+    'X-Requested-With'
   ]
 }));
 
-// ✅ CORS headers for preflight (manual fallback for Render sometimes)
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  next();
-});
+// ✅ Handle preflight OPTIONS request globally
+app.options('*', cors());
 
+// ✅ JSON body parser
 app.use(express.json());
 
+// ✅ API status route
 app.get('/', (req, res) => {
   res.send('API is working!');
 });
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// ✅ MongoDB connection
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-// API Routes
+// ✅ API routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/teachers', require('./routes/teachers'));
@@ -66,9 +76,12 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', uploadRoutes);
 app.use('/api/attendance', attendanceRoutes);
 
-// Static file hosting
+// ✅ Static file hosting
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Start server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
+
