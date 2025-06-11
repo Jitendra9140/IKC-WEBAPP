@@ -23,18 +23,16 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin like mobile apps or curl
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      console.log('❌ Blocked by CORS:', origin);
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: "https://ikc-webapp.netlify.app", // no trailing slash
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  credentials: true,
+  allowedHeaders: [
+    "Origin",
+    "Content-Type",
+    "Accept",
+    "Authorization",
+    "X-Requested-With"
+  ]
 }));
 
 // ✅ CORS headers for preflight (manual fallback for Render sometimes)
