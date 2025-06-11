@@ -10,6 +10,12 @@ dotenv.config();
 
 const app = express();
 
+// 👇 Log all incoming request origins
+app.use((req, res, next) => {
+  console.log('Incoming request from Origin:', req.headers.origin);
+  next();
+});
+
 // ✅ Enable CORS
 const allowedOrigins = [
   'https://ikc-webapp.netlify.app',
@@ -18,9 +24,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (e.g., mobile apps, Postman)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('❌ Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -35,8 +43,16 @@ app.use(cors({
   ]
 }));
 
-// ✅ Handle preflight requests for all routes
-app.options('/:path(*)', cors());
+// ✅ CORS headers for preflight (manual fallback for Render sometimes)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 app.use(express.json());
 
@@ -44,7 +60,7 @@ app.get('/', (req, res) => {
   res.send('API is working!');
 });
 
-// ✅ MongoDB Connection
+// ✅ MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
@@ -61,10 +77,9 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', uploadRoutes);
 app.use('/api/attendance', attendanceRoutes);
 
-// ✅ Static Files
+// ✅ Static file hosting
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ Start Server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-
