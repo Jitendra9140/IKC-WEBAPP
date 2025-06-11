@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { adminService } from '../../services/adminService'
 import { showToast } from '../../utils/toast'
+const API_URL = import.meta.env.VITE_API_URL + '/api'
 
 const AdminRegistration = () => {
   const [activeTab, setActiveTab] = useState('student')
@@ -177,7 +178,6 @@ const AdminRegistration = () => {
   }
   
   // Upload image and get URL
-  // Upload image and get URL
   const uploadImage = async (image) => {
     if (!image) return null
     
@@ -186,7 +186,7 @@ const AdminRegistration = () => {
     
     try {
       // Change this URL to point to your backend server
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         body: formData
       })

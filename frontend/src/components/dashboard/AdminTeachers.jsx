@@ -239,7 +239,7 @@ const AdminTeachers = () => {
           {teachers.map(teacher => (
             <div key={teacher._id} className="bg-white rounded-lg shadow-lg p-6">
               <img
-                src={`http://localhost:5000${teacher.imageUrl}`}
+                src={teacher.imageUrl ? `${import.meta.env.VITE_API_URL}${teacher.imageUrl}`: 'https://via.placeholder.com/150'}
                 alt={teacher.name} className="w-24 h-24 rounded-full mx-auto" />
               <h3 className="text-lg font-semibold text-gray-900 mt-4">{teacher.name}</h3>
               <div className="mt-2 text-sm text-gray-600">
@@ -300,7 +300,7 @@ const AdminTeachers = () => {
                         className="text-lg font-medium leading-6 text-gray-900 flex items-center"
                       >
                         <img
-                          src={`http://localhost:5000${selectedTeacher.imageUrl}`}
+                          src={selectedTeacher.imageUrl ? `${import.meta.env.VITE_API_URL}${selectedTeacher.imageUrl}`: 'https://via.placeholder.com/150'}
                           alt={selectedTeacher.name}
                           className="w-16 h-16 rounded-full mr-4"
                         />
@@ -396,7 +396,7 @@ const AdminTeachers = () => {
                         className="text-lg font-medium leading-6 text-gray-900 flex items-center border-b pb-3"
                       >
                         <img
-                          src={`http://localhost:5000${selectedTeacher.imageUrl}`}
+                          src={selectedTeacher.imageUrl ? `${import.meta.env.VITE_API_URL}${selectedTeacher.imageUrl}`: 'https://via.placeholder.com/150'}
                           alt={selectedTeacher.name}
                           className="w-12 h-12 rounded-full mr-3"
                         />

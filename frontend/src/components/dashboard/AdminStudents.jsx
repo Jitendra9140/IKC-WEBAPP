@@ -215,7 +215,7 @@ const AdminStudents = () => {
           {students.map(student => (
             <div key={student._id} className="bg-white rounded-lg shadow-lg p-6">
               <img
-                src={student.imageUrl ? `http://localhost:5000${student.imageUrl}` : 'https://via.placeholder.com/150'}
+                src={student.imageUrl ? `${import.meta.env.VITE_API_URL}${student.imageUrl}` : 'https://via.placeholder.com/150'}
                 alt={student.name} 
                 className="w-24 h-24 rounded-full mx-auto object-cover"
               />
@@ -285,7 +285,7 @@ const AdminStudents = () => {
                         className="text-lg font-medium leading-6 text-gray-900 flex items-center"
                       >
                         <img
-                          src={selectedStudent.imageUrl ? `http://localhost:5000${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
+                           src={selectedStudent.imageUrl ? `${import.meta.env.VITE_API_URL}${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
                           alt={selectedStudent.name}
                           className="w-16 h-16 rounded-full mr-4 object-cover"
                         />
@@ -384,7 +384,7 @@ const AdminStudents = () => {
                       >
                         <div className="flex items-center">
                           <img
-                            src={selectedStudent.imageUrl ? `http://localhost:5000${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
+                             src={selectedStudent.imageUrl ? `${import.meta.env.VITE_API_URL}${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
                             alt={selectedStudent.name}
                             className="w-12 h-12 rounded-full mr-3 object-cover"
                           />
@@ -560,7 +560,7 @@ const AdminStudents = () => {
                       >
                         <div className="flex items-center">
                           <img
-                            src={selectedStudent.imageUrl ? `http://localhost:5000${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
+                             src={selectedStudent.imageUrl ? `${import.meta.env.VITE_API_URL}${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
                             alt={selectedStudent.name}
                             className="w-12 h-12 rounded-full mr-3 object-cover"
                           />

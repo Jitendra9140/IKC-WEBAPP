@@ -1,6 +1,6 @@
 import { showToast } from '../utils/toast'
 
-const API_URL = 'http://localhost:5000/api/auth'
+const API_URL = import.meta.env.VITE_API_URL + '/api/auth'
 
 export const authService = {
   async login(username, password, role) {
