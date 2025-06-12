@@ -9,12 +9,8 @@ const attendanceRoutes = require('./routes/attendance');
 dotenv.config();
 
 const app = express();
+app.use(express.json());
 
-// 👇 Log all incoming request origins
-app.use((req, res, next) => {
-  console.log('Incoming request from Origin:', req.headers.origin);
-  next();
-});
 
 // ✅ Enable CORS
 const allowedOrigins = [
@@ -22,31 +18,7 @@ const allowedOrigins = [
   'http://localhost:5173'
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (e.g., mobile apps, Postman)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log('❌ Blocked by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
-  allowedHeaders: [
-    "Origin",
-    "Content-Type",
-    "Accept",
-    "Authorization",
-    "X-Requested-With"
-  ]
-}));
-
-// ✅ CORS headers for preflight (manual fallback for Render sometimes)
-app.options('*', cors());
-
-app.use(express.json());
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('API is working!');
