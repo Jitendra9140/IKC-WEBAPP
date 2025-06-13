@@ -44,7 +44,7 @@ const AdminRegister = () => {
       }
 
       await authService.register(userData, 'admin')
-      navigate('/dashboard') // Redirect to admin dashboard after successful registration
+      navigate('/admin') // Redirect to admin dashboard after successful registration
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.')
     }

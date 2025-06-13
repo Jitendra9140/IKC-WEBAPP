@@ -186,7 +186,7 @@ const AdminRegistration = () => {
     
     try {
       // Change this URL to point to your backend server
-      const response = await fetch(`${VITE_API_URL}/upload`, {
+      const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         body: formData
       })
