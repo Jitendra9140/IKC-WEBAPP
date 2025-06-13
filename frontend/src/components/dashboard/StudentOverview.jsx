@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { studentService } from '../../services/studentService'
+import { useNavigate } from 'react-router-dom'
+import { showToast } from '../../utils/toast'
 
 const StudentOverview = () => {
   const [loading, setLoading] = useState(true)
@@ -12,6 +14,7 @@ const StudentOverview = () => {
     testAverage: 0
   })
   const [upcomingLectures, setUpcomingLectures] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,8 +23,11 @@ const StudentOverview = () => {
         const studentId = localStorage.getItem('userId')
         
         if (!studentId) {
-          setError('User ID not found. Please log out and log in again.')
-          setLoading(false)
+          showToast.error('User ID not found. Please log in again.')
+          setError('User ID not found. Please log in again.')
+          setTimeout(() => {
+            navigate('/login')
+          }, 2000) // Redirect after showing error for 2 seconds
           return
         }
         
@@ -84,6 +90,15 @@ const StudentOverview = () => {
       } catch (err) {
         console.error('Error fetching data:', err)
         setError(`Failed to load data: ${err.message || 'Unknown error'}`)
+        
+        // If the error is related to authentication, redirect to login
+        if (err.message === 'User ID not found' || 
+            err.response?.status === 401 || 
+            err.message.includes('unauthorized')) {
+          setTimeout(() => {
+            navigate('/login')
+          }, 2000)
+        }
       } finally {
         setLoading(false)
       }

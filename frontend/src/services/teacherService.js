@@ -1,25 +1,36 @@
-const API_URL = import.meta.env.VITE_API_URL + '/api'
+import api from './api';
+import { showToast } from '../utils/toast';
 
 export const teacherService = {
   // Fetch teacher's profile
   async getProfile(teacherId) {
-    const response = await fetch(`${API_URL}/teachers/${teacherId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    console.log('Response from getProfile:', response);
-    return response.json()
+    if (!teacherId) {
+      showToast.error('User ID not found. Please log in again.');
+      throw new Error('User ID not found');
+    }
+    
+    try {
+      console.log('Fetching profile for teacher ID:', teacherId);
+      return await api.get(`/teachers/${teacherId}`);
+    } catch (error) {
+      console.error('Profile fetch error:', error);
+      throw error;
+    }
   },
 
   // Fetch teacher's lectures
   async getLectures(teacherId) {
-    const response = await fetch(`${API_URL}/lectures/teacher/${teacherId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    if (!teacherId) {
+      showToast.error('User ID not found. Please log in again.');
+      throw new Error('User ID not found');
+    }
+    
+    try {
+      return await api.get(`/lectures/teacher/${teacherId}`);
+    } catch (error) {
+      console.error('Lectures fetch error:', error);
+      throw error;
+    }
   },
 
   // Fetch teacher's students
@@ -29,22 +40,11 @@ export const teacherService = {
       console.log('Fetching students for teacher ID:', teacherId);
       if (!teacherId) {
         console.error('Invalid teacher ID');
+        showToast.error('User ID not found. Please log in again.');
         throw new Error('Invalid teacher ID');
       }
       
-      const response = await fetch(`${API_URL}/teachers/${teacherId}/students`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      return response.json()
+      return await api.get(`/teachers/${teacherId}/students`);
     } catch (error) {
       console.error('Error in getStudents:', error);
       throw error;
@@ -53,28 +53,22 @@ export const teacherService = {
 
   // Create new lecture
   async createLecture(lectureData) {
-    const response = await fetch(`${API_URL}/lectures`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(lectureData)
-    })
-    return response.json()
+    try {
+      return await api.post('/lectures', lectureData);
+    } catch (error) {
+      console.error('Error creating lecture:', error);
+      throw error;
+    }
   },
 
   // Update teacher profile
   async updateProfile(teacherId, profileData) {
-    const response = await fetch(`${API_URL}/teachers/${teacherId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(profileData)
-    })
-    return response.json()
+    try {
+      return await api.put(`/teachers/${teacherId}`, profileData);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
   },
 
   // Get teacher's payments
@@ -83,22 +77,11 @@ export const teacherService = {
       // Ensure teacherId is valid
       if (!teacherId) {
         console.error('Invalid teacher ID');
+        showToast.error('User ID not found. Please log in again.');
         throw new Error('Invalid teacher ID');
       }
       
-      const response = await fetch(`${API_URL}/teachers/${teacherId}/payments`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      return response.json()
+      return await api.get(`/teachers/${teacherId}/payments`);
     } catch (error) {
       console.error('Error in getPayments:', error);
       throw error;
@@ -107,99 +90,71 @@ export const teacherService = {
 
   // Tests related methods
   async getTests(teacherId) {
-    const response = await fetch(`${API_URL}/tests/teacher/${teacherId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    try {
+      return await api.get(`/tests/teacher/${teacherId}`);
+    } catch (error) {
+      console.error('Error fetching tests:', error);
+      throw error;
+    }
   },
 
   async createTest(testData) {
-    const response = await fetch(`${API_URL}/tests`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(testData)
-    })
-    return response.json()
+    try {
+      return await api.post('/tests', testData);
+    } catch (error) {
+      console.error('Error creating test:', error);
+      throw error;
+    }
   },
 
   async updateTest(testId, testData) {
-    const response = await fetch(`${API_URL}/tests/${testId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(testData)
-    })
-    return response.json()
+    try {
+      return await api.put(`/tests/${testId}`, testData);
+    } catch (error) {
+      console.error('Error updating test:', error);
+      throw error;
+    }
   },
 
   async deleteTest(testId) {
-    const response = await fetch(`${API_URL}/tests/${testId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    try {
+      return await api.delete(`/tests/${testId}`);
+    } catch (error) {
+      console.error('Error deleting test:', error);
+      throw error;
+    }
   },
 
   // Marks related methods
   async getTestMarks(testId) {
-    const response = await fetch(`${API_URL}/marks/test/${testId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    try {
+      return await api.get(`/marks/test/${testId}`);
+    } catch (error) {
+      console.error('Error fetching test marks:', error);
+      throw error;
+    }
   },
 
-  // async addOrUpdateMarks(marksData) {
-  //   const response = await fetch(`${API_URL}/marks`, {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Authorization': `Bearer ${localStorage.getItem('token')}`
-  //     },
-  //     body: JSON.stringify(marksData)
-  //   })
-  //   return response.json()
-  // }, 
   async updateTestMarks(testId, studentMarks) {
-    const response = await fetch(`${API_URL}/tests/${testId}/marks`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({ studentMarks })
-    })
-    return response.json()
+    try {
+      return await api.post(`/tests/${testId}/marks`, { studentMarks });
+    } catch (error) {
+      console.error('Error updating test marks:', error);
+      throw error;
+    }
   },
 
   async getAttendanceForLecture(lectureId) {
     try {
-      const response = await fetch(`${API_URL}/attendance/lecture/${lectureId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      try {
+        return await api.get(`/attendance/lecture/${lectureId}`);
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          // No attendance record exists yet
+          return null;
         }
-      });
-      
-      if (response.status === 404) {
-        // No attendance record exists yet
-        return null;
+        throw error;
       }
-      
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: Failed to fetch attendance`);
-      }
-      
-      return response.json();
     } catch (error) {
       console.error('Error fetching attendance:', error);
       throw error;
@@ -208,30 +163,14 @@ export const teacherService = {
   
   async saveAttendance(lectureId, records) {
     try {
-      const response = await fetch(`${API_URL}/attendance`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          lectureId,
-          records
-        })
+      return await api.post('/attendance', {
+        lectureId,
+        records
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Error ${response.status}: Failed to save attendance`);
-      }
-      
-      return response.json();
     } catch (error) {
       console.error('Error saving attendance:', error);
       throw error;
     }
   }
 }
-
-// Add these methods to the teacherService object
 

@@ -1,49 +1,41 @@
-import { showToast } from '../utils/toast'
+import axios from 'axios';
+import { showToast } from '../utils/toast';
 
-const API_URL = import.meta.env.VITE_API_URL + '/api/auth'
+const API_URL = import.meta.env.VITE_API_URL + '/api/auth';
 
 export const authService = {
   async login(username, password, role) {
     try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password, role })
-      })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.msg)
+      const response = await axios.post(`${API_URL}/login`, {
+        username, password, role
+      });
+      
+      const data = response.data;
       
       // Store token and user ID
-      localStorage.setItem('token', data.token)
+      localStorage.setItem('token', data.token);
       
       // Extract user ID from JWT token
-      const tokenPayload = JSON.parse(atob(data.token.split('.')[1]))
-      localStorage.setItem('userId', tokenPayload.user.id)
-      localStorage.setItem('userRole', tokenPayload.user.role)
+      const tokenPayload = JSON.parse(atob(data.token.split('.')[1]));
+      localStorage.setItem('userId', tokenPayload.user.id);
+      localStorage.setItem('userRole', tokenPayload.user.role);
       
-      showToast.success('Login successful!')
-      return { ...data, role: tokenPayload.user.role }
+      showToast.success('Login successful!');
+      return { ...data, role: tokenPayload.user.role };
     } catch (error) {
-      showToast.error(error.message || 'Login failed')
-      throw error
+      const errorMessage = error.response?.data?.msg || 'Login failed';
+      showToast.error(errorMessage);
+      throw error;
     }
   },
 
   async register(userData, role) {
     try {
-      const response = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ...userData, role })
+      const response = await axios.post(`${API_URL}/register`, {
+        ...userData, role
       });
   
-      const data = await response.json();
-  
-      if (!response.ok) throw new Error(data.msg || 'Registration failed');
+      const data = response.data;
   
       // Store token
       localStorage.setItem('token', data.token);
@@ -65,14 +57,16 @@ export const authService = {
       showToast.success('Registration successful!');
       return data;
     } catch (error) {
-      showToast.error(error.message || 'Registration failed');
+      const errorMessage = error.response?.data?.msg || 'Registration failed';
+      showToast.error(errorMessage);
       throw error;
     }
   },
   
-  
   logout() {
-    localStorage.removeItem('token')
-    showToast.info('You have been logged out')
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
+    showToast.info('You have been logged out');
   }
-}
+};

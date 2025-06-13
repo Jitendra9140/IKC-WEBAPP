@@ -1,308 +1,146 @@
-const API_URL = import.meta.env.VITE_API_URL + '/api'
+import api from './api';
+import { showToast } from '../utils/toast';
+
+const API_URL = import.meta.env.VITE_API_URL + '/api';
 
 export const adminService = {
   // Get dashboard statistics
   async getDashboardStats() {
-    const response = await fetch(`${API_URL}/admin/dashboard`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get('/admin/dashboard');
   },
 
   // Get all lectures with optional filters
   async getLectures(filters = {}) {
-    let url = `${API_URL}/lectures` 
+    const { date, teacherId, classLevel, section } = filters;
+    let url = '/lectures';
     
-    // Add query parameters for filters if they exist
-    const queryParams = new URLSearchParams()
-    if (filters.classLevel) queryParams.append('class', filters.classLevel)
-    if (filters.section) queryParams.append('section', filters.section)
-    if (filters.subject) queryParams.append('subject', filters.subject)
+    // Add query parameters if filters are provided
+    const params = {};
+    if (date) params.date = date;
+    if (teacherId) params.teacherId = teacherId;
+    if (classLevel) params.class = classLevel;
+    if (section) params.section = section;
     
-    const queryString = queryParams.toString()
-    if (queryString) {
-      url += `?${queryString}`
-    }
-    
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(url, { params });
   },
 
-  // Get all teachers with optional filters
-  async getTeachers(filters = {}) {
-    let url = `${API_URL}/admin/teachers`  // Changed from ${API_URL}/teachers
-    
-    // Add query parameters for filters if they exist
-    const queryParams = new URLSearchParams()
-    if (filters.subject) queryParams.append('subject', filters.subject)
-    if (filters.teachesClass) queryParams.append('teachesClass', filters.teachesClass)
-    if (filters.section) queryParams.append('section', filters.section)  // Add section filter if needed
-    
-    const queryString = queryParams.toString()
-    if (queryString) {
-      url += `?${queryString}`
-    }
-    
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+  // Get all teachers
+  async getTeachers() {
+    return await api.get('/teachers');
   },
 
   // Get all students with optional filters
   async getStudents(filters = {}) {
-    let url = `${API_URL}/admin/students`
+    const { classLevel, section } = filters;
+    let url = '/students';
     
-    // Add query parameters for filters if they exist
-    const queryParams = new URLSearchParams()
-    if (filters.classLevel) queryParams.append('classLevel', filters.classLevel)
-    if (filters.section) queryParams.append('section', filters.section)
+    // Add query parameters if filters are provided
+    const params = {};
+    if (classLevel) params.class = classLevel;
+    if (section) params.section = section;
     
-    const queryString = queryParams.toString()
-    if (queryString) {
-      url += `?${queryString}`
-    }
-    
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(url, { params });
   },
 
   // Get all payments
-  async getPayments(filters = {}) {
-    let url = `${API_URL}/payments`
-    
-    // Add query parameters for filters if they exist
-    const queryParams = new URLSearchParams()
-    if (filters.status) queryParams.append('status', filters.status)
-    if (filters.type) queryParams.append('type', filters.type)
-    
-    const queryString = queryParams.toString()
-    if (queryString) {
-      url += `?${queryString}`
-    }
-    
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+  async getPayments() {
+    return await api.get('/payments');
   },
 
   // Create a new lecture
   async createLecture(lectureData) {
-    const response = await fetch(`${API_URL}/lectures`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(lectureData)
-    })
-    return response.json()
+    return await api.post('/lectures', lectureData);
   },
 
   // Update a lecture
   async updateLecture(lectureId, lectureData) {
-    const response = await fetch(`${API_URL}/lectures/${lectureId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(lectureData)
-    })
-    return response.json()
+    return await api.put(`/lectures/${lectureId}`, lectureData);
   },
 
   // Delete a lecture
   async deleteLecture(lectureId) {
-    const response = await fetch(`${API_URL}/lectures/${lectureId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.delete(`/lectures/${lectureId}`);
   },
 
   // Get student payments
   async getStudentPayments(studentId) {
-    console.log(studentId,"studentId")
-    const response = await fetch(`${API_URL}/payments/student/${studentId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    console.log(studentId, "studentId");
+    return await api.get(`/payments/student/${studentId}`);
   },
 
   // Create student payment installment
   async createStudentPayment(studentId, paymentData) {
-    const response = await fetch(`${API_URL}/payments/student/${studentId}/installment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(paymentData)
-    })
-    
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Failed to create payment')
+    try {
+      return await api.post(`/payments/student/${studentId}/installment`, paymentData);
+    } catch (error) {
+      throw error;
     }
-    
-    return response.json()
   },
 
   // Get teacher by ID
   async getTeacherById(teacherId) {
-    const response = await fetch(`${API_URL}/teachers/payment/${teacherId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(`/teachers/payment/${teacherId}`);
   },
 
   // Get teacher payments
   async getTeacherPayments(teacherId) {
-    const response = await fetch(`${API_URL}/payments/teacher/${teacherId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(`/payments/teacher/${teacherId}`);
   },
   
-
   // Get teacher lectures
   async getTeacherLectures(teacherId) {
-    
-    const response = await fetch(`${API_URL}/lectures/teacher/${teacherId}/admin`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(`/lectures/teacher/${teacherId}/admin`);
   },
 
   async getTeacherLecturesPayement(teacherId) {
-    console.log(teacherId,"getTeacherLecturesPayement")
-    const response = await fetch(`${API_URL}/lectures/teacher/${teacherId}/payments`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    console.log(teacherId, "getTeacherLecturesPayement");
+    return await api.get(`/lectures/teacher/${teacherId}/payments`);
   },
 
   // Create teacher payment
   async createTeacherPayment(teacherId, paymentData) {
-    const response = await fetch(`${API_URL}/payments/teacher/${teacherId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(paymentData)
-    })
-    
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Failed to create payment')
+    try {
+      return await api.post(`/payments/teacher/${teacherId}`, paymentData);
+    } catch (error) {
+      throw error;
     }
-    
-    return response.json()
   },
   
   // Register a new student (admin only)
   async registerStudent(studentData) {
-    const response = await fetch(`${API_URL}/admin/register/student`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(studentData)
-    })
-    
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Failed to register student')
+    try {
+      return await api.post('/admin/register/student', studentData);
+    } catch (error) {
+      throw error;
     }
-    
-    return response.json()
   },
   
   // Register a new teacher (admin only)
   async registerTeacher(teacherData) {
-    const response = await fetch(`${API_URL}/admin/register/teacher`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(teacherData)
-    })
-    
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Failed to register teacher')
+    try {
+      return await api.post('/admin/register/teacher', teacherData);
+    } catch (error) {
+      throw error;
     }
-    
-    return response.json()
   },
 
   // Get student by ID
   async getStudentById(studentId) {
-    const response = await fetch(`${API_URL}/students/direct/${studentId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(`/students/direct/${studentId}`);
   },
   
   // Get student performance data
   async getStudentPerformance(studentId) {
-    const response = await fetch(`${API_URL}/admin/student/${studentId}/performance`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(`/admin/student/${studentId}/performance`);
   },
   
   // Get student attendance data
   async getStudentAttendance(studentId) {
-    const response = await fetch(`${API_URL}/admin/student/${studentId}/attendance`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(`/admin/student/${studentId}/attendance`);
   },
-  // Add after line 278
+
+  // Get student attendance debug data
   async getStudentAttendanceDebug(studentId) {
-    const response = await fetch(`${API_URL}/admin/student/${studentId}/attendance-debug`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    return response.json()
+    return await api.get(`/admin/student/${studentId}/attendance-debug`);
   },
 }

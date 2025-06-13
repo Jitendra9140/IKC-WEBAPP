@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
+import { showToast } from '../../utils/toast'
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -8,8 +9,20 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (!token) {
+    const userId = localStorage.getItem('userId')
+    const userRole = localStorage.getItem('userRole')
+    
+    if (!token || !userId) {
+      showToast.error('Authentication required. Please log in.')
       navigate('/login')
+      return
+    }
+    
+    // Check if user is trying to access student dashboard as admin
+    if (userRole !== 'student') {
+      showToast.error('You do not have permission to access this page')
+      navigate(`/${userRole}`)
+      return
     }
   }, [navigate])
 

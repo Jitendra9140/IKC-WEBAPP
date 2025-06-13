@@ -214,11 +214,11 @@ const AdminStudents = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {students.map(student => (
             <div key={student._id} className="bg-white rounded-lg shadow-lg p-6">
-              <img
-                src={student.imageUrl ? `${import.meta.env.VITE_API_URL}${student.imageUrl}` : 'https://via.placeholder.com/150'}
-                alt={student.name} 
-                className="w-24 h-24 rounded-full mx-auto object-cover"
-              />
+             <img
+  src={selectedStudent.imageUrl ? selectedStudent.imageUrl : 'https://via.placeholder.com/150'}
+  alt={selectedStudent.name}
+  className="w-16 h-16 rounded-full mr-4 object-cover"
+/>
               <h3 className="text-lg font-semibold text-gray-900 mt-4 text-center">{student.name}</h3>
               <div className="mt-2 text-sm text-gray-600">
                 <p><span className="font-medium">Class:</span> {student.class}th {student.section}</p>

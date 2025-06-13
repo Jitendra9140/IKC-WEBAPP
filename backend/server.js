@@ -3,8 +3,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
-const uploadRoutes = require('./routes/upload');
-const attendanceRoutes = require('./routes/attendance');
 
 dotenv.config();
 
@@ -39,8 +37,7 @@ app.use(cors({
   ]
 }));
 
-// ✅ Handle preflight (OPTIONS) requests
-// app.options('*', cors());
+
 
 // ✅ Root route
 app.get('/', (req, res) => {
@@ -48,10 +45,7 @@ app.get('/', (req, res) => {
 });
 
 // ✅ Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI, {})
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
@@ -64,8 +58,8 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/tests', require('./routes/tests'));
 app.use('/api/marks', require('./routes/marks'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/upload', uploadRoutes);
-app.use('/api/attendance', attendanceRoutes);
+app.use('/api/upload', require('./routes/upload'));
+app.use('/api/attendance',require('./routes/attendance'));
 
 // ✅ Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
