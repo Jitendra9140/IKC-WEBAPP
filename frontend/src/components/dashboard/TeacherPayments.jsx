@@ -340,7 +340,8 @@ const TeacherPayments = () => {
                                   {monthData.payments.map(payment => (
                                     <tr key={payment._id}>
                                       <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(payment.paidDate || payment.date || payment.createdAt).toLocaleDateString()}
+                                        {/* {new Date(payment.paidDate || payment.date || payment.createdAt).toLocaleDateString()} */}
+                                        {payment.month}
                                       </td>
                                       <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                         ₹{payment.amount.toLocaleString()}
