@@ -214,11 +214,11 @@ const AdminStudents = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {students.map(student => (
             <div key={student._id} className="bg-white rounded-lg shadow-lg p-6">
-             <img
-  src={selectedStudent.imageUrl ? selectedStudent.imageUrl : 'https://via.placeholder.com/150'}
-  alt={selectedStudent.name}
-  className="w-16 h-16 rounded-full mr-4 object-cover"
-/>
+              <img
+                src={student.imageUrl}
+                alt={student.name} 
+                className="w-24 h-24 rounded-full mx-auto object-cover"
+              />
               <h3 className="text-lg font-semibold text-gray-900 mt-4 text-center">{student.name}</h3>
               <div className="mt-2 text-sm text-gray-600">
                 <p><span className="font-medium">Class:</span> {student.class}th {student.section}</p>
@@ -285,7 +285,7 @@ const AdminStudents = () => {
                         className="text-lg font-medium leading-6 text-gray-900 flex items-center"
                       >
                         <img
-                           src={selectedStudent.imageUrl ? `${import.meta.env.VITE_API_URL}${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
+                           src={selectedStudent.imageUrl}
                           alt={selectedStudent.name}
                           className="w-16 h-16 rounded-full mr-4 object-cover"
                         />
@@ -384,7 +384,7 @@ const AdminStudents = () => {
                       >
                         <div className="flex items-center">
                           <img
-                             src={selectedStudent.imageUrl ? `${import.meta.env.VITE_API_URL}${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
+                             src={selectedStudent.imageUrl }
                             alt={selectedStudent.name}
                             className="w-12 h-12 rounded-full mr-3 object-cover"
                           />
@@ -560,7 +560,7 @@ const AdminStudents = () => {
                       >
                         <div className="flex items-center">
                           <img
-                             src={selectedStudent.imageUrl ? `${import.meta.env.VITE_API_URL}${selectedStudent.imageUrl}` : 'https://via.placeholder.com/150'}
+                             src={selectedStudent.imageUrl}
                             alt={selectedStudent.name}
                             className="w-12 h-12 rounded-full mr-3 object-cover"
                           />

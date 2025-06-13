@@ -259,7 +259,7 @@ const TeacherMarks = () => {
                               <div className="flex-shrink-0 h-10 w-10">
                                 <img 
                                   className="h-10 w-10 rounded-full" 
-                                  src={`${import.meta.env.VITE_API_URL}${student.imageUrl}`}
+                                  src={student.imageUrl}
                                   alt={student.name} 
                                 />
                               </div>

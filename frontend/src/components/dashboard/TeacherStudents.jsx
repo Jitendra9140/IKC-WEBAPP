@@ -156,7 +156,7 @@ const TeacherStudents = () => {
             >
               <div className="flex items-center gap-4 mb-4">
                 <img
-                  src={`${import.meta.env.VITE_API_URL}${student.imageUrl}`}
+                  src={student.imageUrl}
                   alt={student.name}
                   className="w-14 h-14 rounded-full object-cover border"
                 />
