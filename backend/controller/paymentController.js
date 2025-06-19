@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Payment = require('../models/Payment');
 const TeacherPayment = require('../models/TeacherPayment');
 const StudentPayment = require('../models/StudentPayment');
 const Teacher = require('../models/Teacher');

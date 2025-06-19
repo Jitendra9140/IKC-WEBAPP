@@ -2,7 +2,6 @@ const Teacher = require('../models/Teacher');
 const Student = require('../models/Student');
 const User = require('../models/User');
 const Lecture = require('../models/Lecture');
-const Payment = require('../models/Payment');
 const TeacherPayment = require('../models/TeacherPayment');
 
 // Create a new teacher
@@ -16,12 +15,37 @@ const createTeacher = async (req, res) => {
   }
 };
 
-// Get all teachers
+// Get all teachers with optional filters
 const getAllTeachers = async (req, res) => {
   try {
-    const teachers = await Teacher.find();
+    console.log('Backend received teacher query params:', req.query);
+    const { subject, teachesClass, section } = req.query;
+    let query = {};
+    
+    if (subject) {
+      console.log('Setting subject filter in backend:', subject);
+      query.subjects = subject;
+    }
+    
+    if (teachesClass) {
+      console.log('Setting class filter in backend:', teachesClass);
+      // Find teachers with assigned classes matching the class level
+      query['assignedClasses.class'] = teachesClass;
+    }
+    
+    if (section) {
+      console.log('Setting section filter in backend:', section);
+      // Find teachers with assigned classes matching the section
+      query['assignedClasses.section'] = section;
+    }
+    
+    console.log('Final MongoDB query for teachers:', query);
+    
+    const teachers = await Teacher.find(query);
+    console.log(`Found ${teachers.length} teachers matching query`);
     res.json(teachers);
   } catch (err) {
+    console.error('Error in getAllTeachers:', err);
     res.status(500).json({ message: err.message });
   }
 };

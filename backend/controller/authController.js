@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
+const adminConfig = require('../config/adminConfig');
 
 // Register user
 const register = async (req, res) => {
@@ -69,6 +70,33 @@ const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    // Check if the credentials match admin credentials
+    if (username === adminConfig.username && password === adminConfig.password) {
+      // Create admin payload
+      const adminPayload = {
+        user: {
+          id: 'admin',
+          role: 'admin'
+        }
+      };
+
+      // Sign token for admin
+      return jwt.sign(
+        adminPayload,
+        process.env.JWT_SECRET,
+        { expiresIn: '5h' },
+        (err, token) => {
+          if (err) throw err;
+          res.json({ 
+            token,
+            role: 'admin',
+            userId: 'admin'
+          });
+        }
+      );
+    }
+
+    // If not admin, proceed with regular user authentication
     let user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
@@ -108,6 +136,16 @@ const login = async (req, res) => {
 // Verify user token and return user data
 const verifyUser = async (req, res) => {
   try {
+    // Special handling for admin user
+    if (req.user.id === 'admin') {
+      return res.json({
+        _id: 'admin',
+        username: adminConfig.username,
+        role: 'admin'
+      });
+    }
+
+    // Regular user verification
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });

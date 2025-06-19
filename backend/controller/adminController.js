@@ -4,7 +4,7 @@ const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
 const Lecture = require('../models/Lecture');
 const Test = require('../models/Test');
-const Marks = require('../models/Marks');
+// Marks model removed as requested by user
 const Payment = require('../models/Payment');
 const TeacherPayment = require('../models/TeacherPayment');
 const StudentPayment = require('../models/StudentPayment');
@@ -40,20 +40,30 @@ const getTeachers = async (req, res) => {
 // Get all students with optional filters
 const getStudents = async (req, res) => {
   try {
-    const { classLevel, section } = req.query;
+    console.log('Backend received query params:', req.query);
+    const { class: classParam, section } = req.query;
     let query = {};
     
-    if (classLevel) {
-      query.class = classLevel;
+    if (classParam) {
+      console.log('Setting class filter in backend:', classParam);
+      query.class = classParam;
     }
     
     if (section) {
+      console.log('Setting section filter in backend:', section);
       query.section = section;
     }
     
+    console.log('Final MongoDB query:', query);
+    
+    // Add a small delay to show loading state
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     const students = await Student.find(query);
+    console.log(`Found ${students.length} students matching query`);
     res.json(students);
   } catch (err) {
+    console.error('Error in getStudents:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -61,12 +71,32 @@ const getStudents = async (req, res) => {
 // Get marks for a specific student
 const getStudentMarks = async (req, res) => {
   try {
-    const marks = await Marks.find({ studentId: req.params.id })
-      .populate('testId');
+    const studentId = req.params.id;
     
-    if (!marks.length) {
+    // Find all tests that have marks for this student
+    const tests = await Test.find({
+      'studentMarks.studentId': studentId
+    });
+    
+    if (!tests.length) {
       return res.status(404).json({ message: 'No marks found for this student' });
     }
+    
+    // Extract the student's marks from each test
+    const marks = tests.map(test => {
+      const studentMark = test.studentMarks.find(
+        mark => mark.studentId.toString() === studentId.toString()
+      );
+      
+      return {
+        studentId,
+        testId: test,
+        marksObtained: studentMark.marksObtained,
+        totalMarks: test.totalMarks,
+        subject: test.subject,
+        teacherRemarks: studentMark.teacherRemarks || ''
+      };
+    });
     
     res.json(marks);
   } catch (err) {
@@ -178,9 +208,9 @@ const getDashboard = async (req, res) => {
     const class11Students = await Student.countDocuments({ class: '11' });
     const class12Students = await Student.countDocuments({ class: '12' });
     
-    // Get section distribution
-    const scienceStudents = await Student.countDocuments({ section: 'science' });
-    const commerceStudents = await Student.countDocuments({ section: 'commerce' });
+    // Get section distribution (case-insensitive)
+    const scienceStudents = await Student.countDocuments({ section: { $regex: new RegExp('^science$', 'i') } });
+    const commerceStudents = await Student.countDocuments({ section: { $regex: new RegExp('^commerce$', 'i') } });
     
     res.json({
       counts: {
@@ -218,6 +248,19 @@ const registerStudent = async (req, res) => {
     let user = await User.findOne({ username });
     if (user) {
       return res.status(400).json({ message: 'User already exists' });
+    }
+
+    // Calculate fees based on class and section (stream)
+    const { getTotalFees } = require('../utils/feeStructure');
+    try {
+      const totalFees = getTotalFees(profileData.class, profileData.section.toLowerCase());
+      profileData.overallFees = totalFees;
+      profileData.dueFees = totalFees; // Initially, all fees are due
+      profileData.paidFees = 0; // Initially, no fees are paid
+    } catch (feeError) {
+      console.error('Fee calculation error:', feeError.message);
+      // If fee calculation fails, use default values or return error
+      return res.status(400).json({ message: `Fee calculation failed: ${feeError.message}` });
     }
 
     // Create student profile
@@ -290,9 +333,26 @@ const getStudentPerformance = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
     
-    // Get all marks for this student
-    const marks = await Marks.find({ studentId })
-      .populate('testId');
+    // Find all tests that have marks for this student
+    const tests = await Test.find({
+      'studentMarks.studentId': studentId
+    });
+    
+    // Extract the student's marks from each test
+    const marks = tests.map(test => {
+      const studentMark = test.studentMarks.find(
+        mark => mark.studentId.toString() === studentId.toString()
+      );
+      
+      return {
+        subject: test.subject,
+        marksObtained: studentMark.marksObtained,
+        totalMarks: test.totalMarks,
+        testId: test,
+        testDate: test.testDate,
+        topic: test.topic
+      };
+    });
     
     // Group marks by subject
     const subjectPerformance = {};
@@ -312,8 +372,8 @@ const getStudentPerformance = async (req, res) => {
       subjectPerformance[mark.subject].totalMax += mark.totalMarks;
       subjectPerformance[mark.subject].tests.push({
         testId: mark.testId._id,
-        testDate: mark.testId.testDate,
-        topic: mark.testId.topic,
+        testDate: mark.testDate,
+        topic: mark.topic,
         marksObtained: mark.marksObtained,
         totalMarks: mark.totalMarks,
         percentage: (mark.marksObtained / mark.totalMarks) * 100
@@ -335,13 +395,13 @@ const getStudentPerformance = async (req, res) => {
     
     // Get recent tests (last 5)
     const recentTests = marks
-      .sort((a, b) => new Date(b.testId.testDate) - new Date(a.testId.testDate))
+      .sort((a, b) => new Date(b.testDate) - new Date(a.testDate))
       .slice(0, 5)
       .map(mark => ({
         _id: mark.testId._id,
         subject: mark.subject,
-        topic: mark.testId.topic,
-        date: mark.testId.testDate,
+        topic: mark.topic,
+        date: mark.testDate,
         marksObtained: mark.marksObtained,
         totalMarks: mark.totalMarks,
         percentage: (mark.marksObtained / mark.totalMarks) * 100

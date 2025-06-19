@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { adminService } from '../../services/adminService'
 import { showToast } from '../../utils/toast'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 const API_URL = import.meta.env.VITE_API_URL + '/api'
 
 const AdminRegistration = () => {
   const [activeTab, setActiveTab] = useState('student')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showStudentPassword, setShowStudentPassword] = useState(false)
+  const [showStudentConfirmPassword, setShowStudentConfirmPassword] = useState(false)
+  const [showTeacherPassword, setShowTeacherPassword] = useState(false)
+  const [showTeacherConfirmPassword, setShowTeacherConfirmPassword] = useState(false)
   
   // Student form state
   const [studentForm, setStudentForm] = useState({
@@ -20,12 +25,11 @@ const AdminRegistration = () => {
     schoolCollegeName: '',
     class: '',
     section: '',
+    gender: '',
     dateOfBirth: '',
     tenthPercentage: '',
     tenthBoard: '',
     tenthPassingYear: '',
-    overallFees: '',
-    paidFees: '0',
     image: null,
     imagePreview: null
   })
@@ -48,6 +52,7 @@ const AdminRegistration = () => {
   })
   
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
+  const [availableSubjects, setAvailableSubjects] = useState([])
   
   // Handle student form change
   const handleStudentChange = (e) => {
@@ -118,8 +123,21 @@ const AdminRegistration = () => {
     
     setTeacherForm(prev => ({
       ...prev,
-      sections: updatedSections
+      sections: updatedSections,
+      subject: '' // Reset subject when section changes
     }))
+    
+    // Update available subjects based on selected sections
+    setTimeout(() => {
+      let subjects = []
+      if (updatedSections.includes('Science')) {
+        subjects = [...subjects, 'Chemistry', 'Physics', 'Maths']
+      }
+      if (updatedSections.includes('Commerce')) {
+        subjects = [...subjects, 'Maths', 'BK (Book Keeping)', 'Economics', 'SP (Secretarial Practice)', 'OCM (Organisation of Commerce and Management)']
+      }
+      setAvailableSubjects([...new Set(subjects)]) // Remove duplicates
+    }, 0)
   }
   
   // Validate student form
@@ -141,6 +159,11 @@ const AdminRegistration = () => {
 
     if (!studentForm.parentPhone.match(/^\d{10}$/)) {
       setError('Please enter a valid 10-digit parent phone number')
+      return false
+    }
+
+    if (!studentForm.image) {
+      setError('Please upload a profile image')
       return false
     }
 
@@ -174,17 +197,26 @@ const AdminRegistration = () => {
       return false
     }
 
+    if (!teacherForm.image) {
+      setError('Please upload a profile image')
+      return false
+    }
+
     return true
   }
   
   // Upload image and get URL
   const uploadImage = async (image) => {
-    if (!image) return null
+    if (!image) {
+      console.error('No image provided for upload')
+      throw new Error('No image provided for upload')
+    }
     
     const formData = new FormData()
     formData.append('image', image)
     
     try {
+      console.log('Uploading image to server...')
       // Change this URL to point to your backend server
       const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
@@ -192,14 +224,23 @@ const AdminRegistration = () => {
       })
       
       if (!response.ok) {
-        throw new Error('Image upload failed')
+        const errorText = await response.text()
+        console.error('Image upload failed:', errorText)
+        throw new Error(`Image upload failed: ${response.status} ${response.statusText}`)
       }
       
       const data = await response.json()
+      
+      if (!data.imageUrl) {
+        console.error('No image URL returned from server:', data)
+        throw new Error('Server did not return an image URL')
+      }
+      
+      console.log('Image uploaded successfully:', data.imageUrl)
       return data.imageUrl
     } catch (error) {
       console.error('Error uploading image:', error)
-      throw new Error('Image upload failed')
+      throw error
     }
   }
   
@@ -215,14 +256,23 @@ const AdminRegistration = () => {
     }
 
     try {
-      // Upload image if provided
+      // Upload image (required)
       let imageUrl = null
-      if (studentForm.image) {
+      try {
         imageUrl = await uploadImage(studentForm.image)
+        if (!imageUrl) {
+          throw new Error('Failed to upload image')
+        }
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError)
+        setError('Image upload failed. Please try again.')
+        setLoading(false)
+        return
       }
       
-      const paidFees = parseFloat(studentForm.paidFees) || 0
-      const overallFees = parseFloat(studentForm.overallFees) || 0
+      // Set paid fees to 0 during registration
+      // Overall fees will be calculated on the backend based on class and section
+      const paidFees = 0
       
       const studentData = {
         username: studentForm.email,
@@ -235,15 +285,10 @@ const AdminRegistration = () => {
         schoolOrCollegeName: studentForm.schoolCollegeName,
         class: studentForm.class,
         section: studentForm.section,
+        gender: studentForm.gender,
         dob: new Date(studentForm.dateOfBirth).toISOString(),
-        overallFees: overallFees,
         paidFees: paidFees,
-        dueFees: overallFees - paidFees
-      }
-      
-      // Add image URL if available
-      if (imageUrl) {
-        studentData.imageUrl = imageUrl
+        imageUrl: imageUrl // Always include imageUrl
       }
 
       // Add optional fields for 11th and 12th class students
@@ -269,12 +314,11 @@ const AdminRegistration = () => {
         schoolCollegeName: '',
         class: '',
         section: '',
+        gender: '',
         dateOfBirth: '',
         tenthPercentage: '',
         tenthBoard: '',
         tenthPassingYear: '',
-        overallFees: '',
-        paidFees: '0',
         image: null,
         imagePreview: null
       })
@@ -297,10 +341,18 @@ const AdminRegistration = () => {
     }
 
     try {
-      // Upload image if provided
+      // Upload image (required)
       let imageUrl = null
-      if (teacherForm.image) {
+      try {
         imageUrl = await uploadImage(teacherForm.image)
+        if (!imageUrl) {
+          throw new Error('Failed to upload image')
+        }
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError)
+        setError('Image upload failed. Please try again.')
+        setLoading(false)
+        return
       }
       
       // Format assigned classes with salaryPerHour
@@ -329,12 +381,8 @@ const AdminRegistration = () => {
         subjects: teacherForm.subject,
         assignedClasses: formattedClasses,
         qualifications: teacherForm.qualifications,
-        yearsOfExperience: teacherForm.yearsOfExperience
-      }
-      
-      // Add image URL if available
-      if (imageUrl) {
-        teacherData.imageUrl = imageUrl
+        yearsOfExperience: teacherForm.yearsOfExperience,
+        imageUrl: imageUrl // Always include imageUrl
       }
 
       // Add the registerTeacher method to adminService
@@ -412,12 +460,13 @@ const AdminRegistration = () => {
               
               {/* Image Upload */}
               <div className="mb-3">
-                <label className="block text-gray-700 mb-1">Student Image</label>
+                <label className="block text-gray-700 mb-1">Student Image <span className="text-red-500">*</span></label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleStudentImageChange}
                   className="w-full px-3 py-2 border rounded-md"
+                  required
                 />
                 {studentForm.imagePreview && (
                   <div className="mt-2">
@@ -443,25 +492,43 @@ const AdminRegistration = () => {
               </div>
               <div className="mb-3">
                 <label className="block text-gray-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={studentForm.password}
-                  onChange={handleStudentChange}
-                  className="w-full px-3 py-2 border rounded-md"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showStudentPassword ? "text" : "password"}
+                    name="password"
+                    value={studentForm.password}
+                    onChange={handleStudentChange}
+                    className="w-full px-3 py-2 border rounded-md"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowStudentPassword(!showStudentPassword)}
+                  >
+                    {showStudentPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
               <div className="mb-3">
                 <label className="block text-gray-700 mb-1">Confirm Password</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={studentForm.confirmPassword}
-                  onChange={handleStudentChange}
-                  className="w-full px-3 py-2 border rounded-md"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showStudentConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={studentForm.confirmPassword}
+                    onChange={handleStudentChange}
+                    className="w-full px-3 py-2 border rounded-md"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowStudentConfirmPassword(!showStudentConfirmPassword)}
+                  >
+                    {showStudentConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -558,26 +625,21 @@ const AdminRegistration = () => {
                 />
               </div>
               <div className="mb-3">
-                <label className="block text-gray-700 mb-1">Overall Fees</label>
-                <input
-                  type="number"
-                  name="overallFees"
-                  value={studentForm.overallFees}
+                <label className="block text-gray-700 mb-1">Gender</label>
+                <select
+                  name="gender"
+                  value={studentForm.gender}
                   onChange={handleStudentChange}
                   className="w-full px-3 py-2 border rounded-md"
                   required
-                />
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
-              <div className="mb-3">
-                <label className="block text-gray-700 mb-1">Paid Fees</label>
-                <input
-                  type="number"
-                  name="paidFees"
-                  value={studentForm.paidFees}
-                  onChange={handleStudentChange}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-              </div>
+              {/* Fee fields removed - fees are now determined by class and section */}
             </div>
           </div>
           
@@ -656,12 +718,13 @@ const AdminRegistration = () => {
               
               {/* Image Upload */}
               <div className="mb-3">
-                <label className="block text-gray-700 mb-1">Teacher Image</label>
+                <label className="block text-gray-700 mb-1">Teacher Image <span className="text-red-500">*</span></label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleTeacherImageChange}
                   className="w-full px-3 py-2 border rounded-md"
+                  required
                 />
                 {teacherForm.imagePreview && (
                   <div className="mt-2">
@@ -687,25 +750,43 @@ const AdminRegistration = () => {
               </div>
               <div className="mb-3">
                 <label className="block text-gray-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={teacherForm.password}
-                  onChange={handleTeacherChange}
-                  className="w-full px-3 py-2 border rounded-md"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showTeacherPassword ? "text" : "password"}
+                    name="password"
+                    value={teacherForm.password}
+                    onChange={handleTeacherChange}
+                    className="w-full px-3 py-2 border rounded-md"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowTeacherPassword(!showTeacherPassword)}
+                  >
+                    {showTeacherPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
               <div className="mb-3">
                 <label className="block text-gray-700 mb-1">Confirm Password</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={teacherForm.confirmPassword}
-                  onChange={handleTeacherChange}
-                  className="w-full px-3 py-2 border rounded-md"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showTeacherConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={teacherForm.confirmPassword}
+                    onChange={handleTeacherChange}
+                    className="w-full px-3 py-2 border rounded-md"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowTeacherConfirmPassword(!showTeacherConfirmPassword)}
+                  >
+                    {showTeacherConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -742,14 +823,24 @@ const AdminRegistration = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="mb-3">
                 <label className="block text-gray-700 mb-1">Subject</label>
-                <input
-                  type="text"
+                <select
                   name="subject"
                   value={teacherForm.subject}
                   onChange={handleTeacherChange}
                   className="w-full px-3 py-2 border rounded-md"
                   required
-                />
+                  disabled={teacherForm.sections.length === 0}
+                >
+                  <option value="">Select Subject</option>
+                  {availableSubjects.map((subject) => (
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
+                  ))}
+                </select>
+                {teacherForm.sections.length === 0 && (
+                  <p className="text-sm text-gray-500 mt-1">Please select at least one section first</p>
+                )}
               </div>
               <div className="mb-3">
                 <label className="block text-gray-700 mb-1">Qualifications</label>

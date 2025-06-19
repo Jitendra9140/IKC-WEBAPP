@@ -104,19 +104,19 @@ const AdminOverview = () => {
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div 
                     className="bg-purple-600 h-2.5 rounded-full" 
-                    style={{ width: `${(stats.distribution.sections.science / stats.counts.students) * 100}%` }}
+                    style={{ width: `${stats.counts.students > 0 ? (stats.distribution.sections.science / stats.counts.students) * 100 : 0}%` }}
                   ></div>
                 </div>
-                <span className="ml-2 text-sm text-gray-600">Science: {stats.distribution.sections.science}</span>
+                <span className="ml-2 text-sm text-gray-600">Science: {stats.distribution.sections.science || 0}</span>
               </div>
               <div className="flex items-center mt-2">
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div 
                     className="bg-yellow-600 h-2.5 rounded-full" 
-                    style={{ width: `${(stats.distribution.sections.commerce / stats.counts.students) * 100}%` }}
+                    style={{ width: `${stats.counts.students > 0 ? (stats.distribution.sections.commerce / stats.counts.students) * 100 : 0}%` }}
                   ></div>
                 </div>
-                <span className="ml-2 text-sm text-gray-600">Commerce: {stats.distribution.sections.commerce}</span>
+                <span className="ml-2 text-sm text-gray-600">Commerce: {stats.distribution.sections.commerce || 0}</span>
               </div>
             </div>
           </div>

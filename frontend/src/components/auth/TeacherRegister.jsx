@@ -15,6 +15,7 @@ const TeacherRegister = () => {
     address: '',
     qualifications: '',
     yearsOfExperience: '',
+    gender: 'male', // Default gender
     assignedClasses: [
     ],
     sections: [],
@@ -59,9 +60,11 @@ const TeacherRegister = () => {
         subjects: formData.subject,
         assignedClasses: formattedClasses,
         qualifications: formData.qualifications,
-        yearsOfExperience: formData.yearsOfExperience
+        yearsOfExperience: formData.yearsOfExperience,
+        gender: formData.gender // Add gender field
       };
   
+      // If user uploaded an image, use it, otherwise use default based on gender
       if (formData.image) {
         const imageFormData = new FormData();
         imageFormData.append('image', formData.image);
@@ -77,6 +80,13 @@ const TeacherRegister = () => {
   
         const uploadResult = await uploadResponse.json();
         teacherData.imageUrl = uploadResult.imageUrl;
+      } else {
+        // Use default avatar based on gender
+        if (formData.gender === 'male') {
+          teacherData.imageUrl = '/images/default-man-teacher.png';
+        } else {
+          teacherData.imageUrl = '/images/default-woman-teacher.png';
+        }
       }
   
       await authService.register(teacherData, 'teacher');
@@ -150,6 +160,27 @@ const TeacherRegister = () => {
     }
   }
 
+  // Helper function to get subject options based on section
+  const getSubjectOptions = () => {
+    const scienceSubjects = ['Chemistry', 'Physics', 'Mathematics'];
+    const commerceSubjects = ['Mathematics', 'Book Keeping (BK)', 'Economics', 'Secretarial Practice (SP)', 'Organisation of Commerce and Management (OCM)'];
+    
+    // If both sections are selected, show all subjects
+    if (formData.sections.includes('Science') && formData.sections.includes('Commerce')) {
+      return [...scienceSubjects, ...commerceSubjects];
+    }
+    // If only Science is selected
+    else if (formData.sections.includes('Science')) {
+      return scienceSubjects;
+    }
+    // If only Commerce is selected
+    else if (formData.sections.includes('Commerce')) {
+      return commerceSubjects;
+    }
+    // Default - show all subjects
+    return [...scienceSubjects, ...commerceSubjects];
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-sm p-8">
@@ -179,6 +210,20 @@ const TeacherRegister = () => {
                 className={inputClassName}
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Gender</label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className={inputClassName}
+                required
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
             </div>
 
             <div>
@@ -218,14 +263,18 @@ const TeacherRegister = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Subject</label>
-              <input
-                type="text"
+              <select
                 name="subject"
                 value={formData.subject}
                 onChange={handleChange}
                 className={inputClassName}
                 required
-              />
+              >
+                <option value="">Select Subject</option>
+                {getSubjectOptions().map((subject, index) => (
+                  <option key={index} value={subject}>{subject}</option>
+                ))}
+              </select>
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700">Profile Image</label>
@@ -337,10 +386,10 @@ const TeacherRegister = () => {
           <div className="flex items-center justify-between pt-4">
             <button
               type="button"
-              onClick={() => navigate('/register')}
+              onClick={() => navigate('/login')}
               className="text-blue-600 hover:text-blue-500"
             >
-              Back to Role Selection
+              Back to Login
             </button>
             <button
               type="submit"

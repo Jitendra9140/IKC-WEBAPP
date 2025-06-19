@@ -50,28 +50,33 @@ const AdminTeacherPayments = () => {
   }
 
   const processMonthlyData = (lectures, payments, teacher) => {
-    // Group lectures by month,
-    const monthlyMap = {}
+  console.log('ADMIN DEBUG: Starting processMonthlyData')
+  console.log('ADMIN DEBUG: Lectures:', lectures)
+  console.log('ADMIN DEBUG: Payments:', payments)
+  console.log('ADMIN DEBUG: Teacher:', teacher)
+  
+  // Group lectures by month
+  const monthlyMap = {}
+  
+  lectures.forEach(lecture => {
+    const date = new Date(lecture.date)
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' })
     
-    lectures.forEach(lecture => {
-      const date = new Date(lecture.date)
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-      const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' })
-      
-      if (!monthlyMap[monthKey]) {
-        monthlyMap[monthKey] = {
-          key: monthKey,
-          month: monthName,
-          lectureCount: 0,
-          totalHours: 0,
-          calculatedAmount: 0,
-          paidAmount: 0,
-          outstandingAmount: 0,
-          lectures: [],
-          payments: []
-        }
+    if (!monthlyMap[monthKey]) {
+      monthlyMap[monthKey] = {
+        key: monthKey,
+        month: monthName,
+        lectureCount: 0,
+        totalHours: 0,
+        calculatedAmount: 0,
+        paidAmount: 0,
+        outstandingAmount: 0,
+        lectures: [],
+        payments: []
       }
-       
+    }
+     
     // Find the matching assigned class for this lecture
     const assignedClass = teacher.assignedClasses.find(
       c => c.class === lecture.class && c.section === lecture.section
@@ -81,18 +86,35 @@ const AdminTeacherPayments = () => {
     const hours = lecture.duration || 1
     const amount = hourlyRate * hours
     
+    console.log(`ADMIN DEBUG: Processing lecture for ${monthKey}:`, {
+      class: lecture.class,
+      section: lecture.section,
+      hourlyRate,
+      hours,
+      amount
+    })
+    
     monthlyMap[monthKey].lectureCount += 1
     monthlyMap[monthKey].totalHours += hours
     monthlyMap[monthKey].calculatedAmount += amount
     monthlyMap[monthKey].lectures.push(lecture)
   })
   
-  // Add payment information - group all payments by month
+  // Add payment information
   payments.forEach(payment => {
     // Use the payment's month field directly instead of deriving from date
     const monthKey = payment.month
     
+    console.log(`ADMIN DEBUG: Processing payment for ${monthKey}:`, {
+      paymentId: payment._id,
+      amount: payment.amount,
+      paid: payment.paid,
+      status: payment.status,
+      date: payment.paidDate || payment.createdAt
+    })
+    
     if (monthlyMap[monthKey]) {
+      console.log(`ADMIN DEBUG: Adding paid amount ${payment.amount} to ${monthKey}`)
       monthlyMap[monthKey].paidAmount += payment.amount
       monthlyMap[monthKey].payments.push(payment)
     } else {
@@ -100,6 +122,7 @@ const AdminTeacherPayments = () => {
       const date = new Date(payment.paidDate || payment.createdAt)
       const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' })
       
+      console.log(`ADMIN DEBUG: Creating new month entry for payment in ${monthKey}`)
       monthlyMap[monthKey] = {
         key: monthKey,
         month: monthName,
@@ -118,10 +141,17 @@ const AdminTeacherPayments = () => {
   Object.values(monthlyMap).forEach(month => {
     month.outstandingAmount = Math.max(0, month.calculatedAmount - month.paidAmount)
     month.isFullyPaid = month.outstandingAmount <= 0
+    console.log(`ADMIN DEBUG: Month ${month.key} calculations:`, {
+      calculatedAmount: month.calculatedAmount,
+      paidAmount: month.paidAmount,
+      outstandingAmount: month.outstandingAmount,
+      isFullyPaid: month.isFullyPaid
+    })
   })
   
   // Convert to array and sort by most recent month
   const monthlyData = Object.values(monthlyMap).sort((a, b) => b.key.localeCompare(a.key))
+  console.log('ADMIN DEBUG: Sorted monthlyData:', monthlyData)
   setMonthlyData(monthlyData)
   
   // Set the most recent month as selected if available
@@ -129,6 +159,7 @@ const AdminTeacherPayments = () => {
     // Find the first month that isn't fully paid
     const firstUnpaidMonth = monthlyData.find(month => !month.isFullyPaid)
     setSelectedMonth(firstUnpaidMonth ? firstUnpaidMonth.key : monthlyData[0].key)
+    console.log('ADMIN DEBUG: Selected month:', firstUnpaidMonth ? firstUnpaidMonth.key : monthlyData[0].key)
   }
 }
 
@@ -297,6 +328,22 @@ const AdminTeacherPayments = () => {
                 {(() => {
                   const monthData = monthlyData.find(m => m.key === selectedMonth)
                   if (!monthData) return null
+                  
+                  console.log('ADMIN DEBUG: Rendering selected month data:', {
+                    key: monthData.key,
+                    month: monthData.month,
+                    lectureCount: monthData.lectureCount,
+                    totalHours: monthData.totalHours,
+                    calculatedAmount: monthData.calculatedAmount,
+                    paidAmount: monthData.paidAmount,
+                    outstandingAmount: monthData.outstandingAmount,
+                    isFullyPaid: monthData.isFullyPaid,
+                    paymentsCount: monthData.payments.length
+                  })
+                  
+                  if (monthData.payments.length > 0) {
+                    console.log('ADMIN DEBUG: Payment details for selected month:', monthData.payments)
+                  }
                   
                   return (
                     <div className="space-y-4">

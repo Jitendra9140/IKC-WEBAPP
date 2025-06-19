@@ -9,7 +9,8 @@ const AdminTeachers = () => {
   const [error, setError] = useState(null)
   const [filters, setFilters] = useState({
     subject: '',
-    teachesClass: ''
+    teachesClass: '',
+    section: ''
   })
   const [selectedTeacher, setSelectedTeacher] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -119,14 +120,14 @@ const AdminTeachers = () => {
   }
 
   const processMonthlyData = (lectures, payments, teacher) => {
-    // Group lectures by month
     const monthlyMap = {}
-    
+  
+    // 1. Group lectures by month
     lectures.forEach(lecture => {
       const date = new Date(lecture.date)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' })
-      
+  
       if (!monthlyMap[monthKey]) {
         monthlyMap[monthKey] = {
           key: monthKey,
@@ -140,48 +141,64 @@ const AdminTeachers = () => {
           payments: []
         }
       }
-      
-      // Find the matching assigned class for this lecture
+  
+      // Match salary rate
       const assignedClass = teacher.assignedClasses.find(
         c => c.class === lecture.class && c.section === lecture.section
       )
-      
+  
       const hourlyRate = assignedClass ? assignedClass.salaryPerHour : 0
       const hours = lecture.duration || 1
       const amount = hourlyRate * hours
-      
+  
       monthlyMap[monthKey].lectureCount += 1
       monthlyMap[monthKey].totalHours += hours
       monthlyMap[monthKey].calculatedAmount += amount
       monthlyMap[monthKey].lectures.push(lecture)
     })
-    
-    // Add payment information
+  
+    // 2. Add payment data using payment.month (not paidDate)
     payments.forEach(payment => {
+      const monthKey = payment.month
       const date = new Date(payment.paidDate || payment.createdAt)
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-      
-      if (monthlyMap[monthKey]) {
+      const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' })
+  
+      if (!monthlyMap[monthKey]) {
+        // Handle advance or out-of-lecture-month payments
+        monthlyMap[monthKey] = {
+          key: monthKey,
+          month: monthName,
+          lectureCount: 0,
+          totalHours: 0,
+          calculatedAmount: 0,
+          paidAmount: payment.amount,
+          outstandingAmount: 0,
+          lectures: [],
+          payments: [payment]
+        }
+      } else {
         monthlyMap[monthKey].paidAmount += payment.amount
         monthlyMap[monthKey].payments.push(payment)
       }
     })
-    
-    // Calculate outstanding amounts
+  
+    // 3. Finalize outstanding amounts
     Object.values(monthlyMap).forEach(month => {
       month.outstandingAmount = month.calculatedAmount - month.paidAmount
       month.isFullyPaid = month.outstandingAmount <= 0
     })
-    
-    // Convert to array and sort by most recent month
+  
+    // 4. Sort by most recent month
     const monthlyData = Object.values(monthlyMap).sort((a, b) => b.key.localeCompare(a.key))
     setMonthlyData(monthlyData)
-    
-    // Set the most recent month as selected if available
+  
+    // 5. Select the most recent unpaid or default to most recent
     if (monthlyData.length > 0) {
-      setSelectedMonth(monthlyData[0].key)
+      const firstUnpaidMonth = monthlyData.find(month => !month.isFullyPaid)
+      setSelectedMonth(firstUnpaidMonth ? firstUnpaidMonth.key : monthlyData[0].key)
     }
   }
+  
 
   const handleMonthSelect = (e) => {
     setSelectedMonth(e.target.value)
@@ -238,11 +255,18 @@ const AdminTeachers = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {teachers.map(teacher => (
             <div key={teacher._id} className="bg-white rounded-lg shadow-lg p-6">
-              <img
-                src={teacher.imageUrl}
-                alt={teacher.name} className="w-24 h-24 rounded-full mx-auto" />
-              <h3 className="text-lg font-semibold text-gray-900 mt-4">{teacher.name}</h3>
-              <div className="mt-2 text-sm text-gray-600">
+              <div className="flex items-center mb-4">
+                <img
+                  src={teacher.imageUrl}
+                  alt={teacher.name} 
+                  className="w-16 h-16 rounded-full object-cover mr-4"
+                />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{teacher.name}</h3>
+                  <p className="text-sm text-gray-600">{teacher.subjects?.join(', ') || 'No subjects assigned'}</p>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">
                 <p><span className="font-medium">Qualification:</span> {teacher.qualifications}</p>
                 <p><span className="font-medium">Experience:</span> {teacher.yearsOfExperience} years</p>
                 <p><span className="font-medium">Contact:</span> {teacher.phone}</p>

@@ -9,6 +9,7 @@ const StudentSchedule = () => {
   const [scheduleType, setScheduleType] = useState('lectures') // 'lectures' or 'tests'
   const [studentProfile, setStudentProfile] = useState(null)
   const [error, setError] = useState(null)
+  const [selectedLectureId, setSelectedLectureId] = useState(null)
 
   useEffect(() => {
     const fetchScheduleData = async () => {
@@ -86,6 +87,14 @@ const StudentSchedule = () => {
       return test.status === 'completed'
     }
   })
+
+  const toggleMessage = (lectureId) => {
+    if (selectedLectureId === lectureId) {
+      setSelectedLectureId(null) // Hide message if already showing
+    } else {
+      setSelectedLectureId(lectureId) // Show message for this lecture
+    }
+  }
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
@@ -175,10 +184,27 @@ const StudentSchedule = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredLectures.map((lecture) => (
-                  <tr key={lecture._id}>
+                  <tr 
+                    key={lecture._id} 
+                    className={lecture.message ? "cursor-pointer hover:bg-gray-50" : ""}
+                    onClick={lecture.message ? () => toggleMessage(lecture._id) : undefined}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{lecture.subject}</div>
+                      {lecture.topic && (
+                        <div className="text-sm text-gray-700 mt-1">
+                          <span className="font-medium">Topic:</span> {lecture.topic}
+                        </div>
+                      )}
                       <div className="text-sm text-gray-500">Class {lecture.class} {lecture.section}</div>
+                      {lecture.message && (
+                        <div className="text-xs text-indigo-600 mt-1 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                          </svg>
+                          Click to {selectedLectureId === lecture._id ? 'hide' : 'view'} message
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{new Date(lecture.date).toLocaleDateString()}</div>
@@ -194,6 +220,23 @@ const StudentSchedule = () => {
                 ))}
               </tbody>
             </table>
+            {filteredLectures.map(lecture => lecture.message && selectedLectureId === lecture._id && (
+              <div key={`${lecture._id}-message`} className="p-4 border-t border-gray-200 bg-indigo-50 transition-all duration-300">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mr-3">
+                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-500 text-sm">📝</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      Message for {lecture.subject} on {new Date(lecture.date).toLocaleDateString()}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-700">{lecture.message}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )
       )}

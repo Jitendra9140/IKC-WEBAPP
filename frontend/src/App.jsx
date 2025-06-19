@@ -3,10 +3,8 @@ import { useState, useEffect } from 'react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import LoginForm from './components/auth/LoginForm'
-import RegisterSelect from './components/auth/RegisterSelect'
-import StudentRegister from './components/auth/StudentRegister'
-import TeacherRegister from './components/auth/TeacherRegister'
-import AdminRegister from './components/auth/AdminRegister'
+// Remove RegisterSelect import
+// Remove StudentRegister and TeacherRegister imports
 import TeacherDashboard from './components/dashboard/TeacherDashboard'
 import TeacherOverview from './components/dashboard/TeacherOverview'
 import TeacherSchedule from './components/dashboard/TeacherSchedule'
@@ -29,8 +27,13 @@ import AdminPayments from './components/dashboard/AdminPayments'
 import AdminStudentPayments from './components/dashboard/AdminStudentPayments'
 import AdminTeacherPayments from './components/dashboard/AdminTeacherPayments'
 import AdminRegistration from './components/dashboard/AdminRegistration'
+import AdminCredentials from './components/dashboard/AdminCredentials'
 // Import the new AttendanceDebug component
 import AttendanceDebug from './components/debug/AttendanceDebug'
+// Import Navbar component
+import Navbar from './components/layout/Navbar'
+// Import Home component
+import Home from './pages/Home'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -79,13 +82,13 @@ function App() {
         pauseOnHover
       />
       <div className="app">
+        {/* Add Navbar component */}
+        <Navbar />
+        <div className="pt-16"> 
         <Routes>
+          <Route path="/home" element={<Home />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/" element={<LoginForm />} />
-          <Route path="/register" element={<RegisterSelect />} />
-          <Route path="/register/student" element={<StudentRegister />} />
-          <Route path="/register/teacher" element={<TeacherRegister />} />
-          <Route path="/register/admin" element={<AdminRegister />} />
           
           {/* Teacher Routes */}
           <Route path="/teacher" element={<TeacherDashboard />}>
@@ -116,10 +119,12 @@ function App() {
             <Route path="student-payment/:studentId" element={<AdminStudentPayments />} />
             <Route path="teacher-payment/:teacherId" element={<AdminTeacherPayments />} />
             <Route path="registration" element={<AdminRegistration />} />
+            <Route path="credentials" element={<AdminCredentials />} />
             {/* Add the new debug route */}
             <Route path="debug/attendance" element={<AttendanceDebug />} />
           </Route>
         </Routes>
+        </div> {/* Close the padding-top div */}
       </div>
     </Router>
   )

@@ -135,9 +135,9 @@ const TeacherTests = () => {
                 required
               >
                 <option value="">Select Class</option>
-                {assignedClasses.map((c, idx) => (
-                  <option key={idx} value={c.class}>
-                    Class {c.class}
+                {[...new Set(assignedClasses.map(c => c.class))].map((classValue) => (
+                  <option key={classValue} value={classValue}>
+                    Class {classValue}
                   </option>
                 ))}
               </select>

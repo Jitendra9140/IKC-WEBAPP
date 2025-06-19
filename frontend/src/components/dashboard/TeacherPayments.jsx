@@ -57,6 +57,11 @@ const TeacherPayments = () => {
   }, [])
 
   const processMonthlyDataAndCalculateStats = (lectures, payments, teacher) => {
+    console.log('DEBUG: Starting processMonthlyDataAndCalculateStats')
+    console.log('DEBUG: Lectures:', lectures)
+    console.log('DEBUG: Payments:', payments)
+    console.log('DEBUG: Teacher:', teacher)
+    
     // Group lectures by month
     const monthlyMap = {}
     
@@ -88,6 +93,14 @@ const TeacherPayments = () => {
       const hours = lecture.duration || 1
       const amount = hourlyRate * hours
       
+      console.log(`DEBUG: Processing lecture for ${monthKey}:`, {
+        class: lecture.class,
+        section: lecture.section,
+        hourlyRate,
+        hours,
+        amount
+      })
+      
       monthlyMap[monthKey].lectureCount += 1
       monthlyMap[monthKey].totalHours += hours
       monthlyMap[monthKey].calculatedAmount += amount
@@ -102,9 +115,21 @@ const TeacherPayments = () => {
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       })();
       
+      console.log(`DEBUG: Processing payment for ${monthKey}:`, {
+        paymentId: payment._id,
+        amount: payment.amount,
+        paid: payment.paid,
+        status: payment.status,
+        date: payment.date || payment.createdAt
+      })
+      
       if (monthlyMap[monthKey]) {
-        if (payment.paid || payment.status === 'paid') {
+        // Only add to paidAmount if payment.paid is true
+        if (payment.paid === true) {
+          console.log(`DEBUG: Adding paid amount ${payment.amount} to ${monthKey} (paid=true)`)
           monthlyMap[monthKey].paidAmount += payment.amount
+        } else {
+          console.log(`DEBUG: Skipping payment ${payment.amount} for ${monthKey} (paid=${payment.paid})`)
         }
         monthlyMap[monthKey].payments.push(payment)
       } else {
@@ -112,13 +137,14 @@ const TeacherPayments = () => {
         const date = new Date(payment.paidDate || payment.date || payment.createdAt)
         const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' })
         
+        console.log(`DEBUG: Creating new month entry for payment in ${monthKey}`)
         monthlyMap[monthKey] = {
           key: monthKey,
           month: monthName,
           lectureCount: 0,
           totalHours: 0,
           calculatedAmount: 0,
-          paidAmount: payment.paid || payment.status === 'paid' ? payment.amount : 0,
+          paidAmount: payment.paid === true ? payment.amount : 0, // Only add if paid is true
           outstandingAmount: 0,
           lectures: [],
           payments: [payment]
@@ -130,10 +156,17 @@ const TeacherPayments = () => {
     Object.values(monthlyMap).forEach(month => {
       month.outstandingAmount = Math.max(0, month.calculatedAmount - month.paidAmount)
       month.isFullyPaid = month.outstandingAmount <= 0
+      console.log(`DEBUG: Month ${month.key} calculations:`, {
+        calculatedAmount: month.calculatedAmount,
+        paidAmount: month.paidAmount,
+        outstandingAmount: month.outstandingAmount,
+        isFullyPaid: month.isFullyPaid
+      })
     })
     
     // Convert to array and sort by most recent month
     const monthlyData = Object.values(monthlyMap).sort((a, b) => b.key.localeCompare(a.key))
+    console.log('DEBUG: Sorted monthlyData:', monthlyData)
     setMonthlyData(monthlyData)
     
     // Set the most recent month as selected if available
@@ -141,23 +174,42 @@ const TeacherPayments = () => {
       // Find the first month that isn't fully paid
       const firstUnpaidMonth = monthlyData.find(month => !month.isFullyPaid)
       setSelectedMonth(firstUnpaidMonth ? firstUnpaidMonth.key : monthlyData[0].key)
+      console.log('DEBUG: Selected month:', firstUnpaidMonth ? firstUnpaidMonth.key : monthlyData[0].key)
     }
     
     // Calculate stats
-    const total = payments.reduce((acc, payment) => acc + payment.amount, 0)
-    const pending = payments
-      .filter(payment => !payment.paid && payment.status !== 'paid')
+    // Only include payments where paid=true in the total
+    const total = payments
+      .filter(payment => payment.paid === true)
       .reduce((acc, payment) => acc + payment.amount, 0)
+    const pending = monthlyData.reduce((acc, month) => acc + month.outstandingAmount, 0)
+    
+    console.log('DEBUG: Stats calculation:', {
+      totalPaidPayments: total,
+      totalPendingFromMonthly: pending,
+      paidPaymentsCount: payments.filter(payment => payment.paid === true).length,
+      totalPaymentsCount: payments.length
+    })
     
     // Get current month and year
     const now = new Date()
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    console.log('DEBUG: Current month key:', currentMonth)
     
     // Find current month's data in the processed monthly data
     const currentMonthData = monthlyMap[currentMonth]
-    const thisMonthEarnings = currentMonthData ? currentMonthData.calculatedAmount : 0
+    const thisMonthEarnings = currentMonthData ? currentMonthData.paidAmount : 0
+    
+    console.log('DEBUG: Current month data:', currentMonthData)
+    console.log('DEBUG: This month earnings:', thisMonthEarnings)
 
     setStats({
+      totalEarned: total,
+      pendingAmount: pending,
+      thisMonthEarnings: thisMonthEarnings
+    })
+    
+    console.log('DEBUG: Final stats set:', {
       totalEarned: total,
       pendingAmount: pending,
       thisMonthEarnings: thisMonthEarnings
@@ -237,6 +289,22 @@ const TeacherPayments = () => {
                   {(() => {
                     const monthData = monthlyData.find(m => m.key === selectedMonth)
                     if (!monthData) return null
+                    
+                    console.log('DEBUG: Rendering selected month data:', {
+                      key: monthData.key,
+                      month: monthData.month,
+                      lectureCount: monthData.lectureCount,
+                      totalHours: monthData.totalHours,
+                      calculatedAmount: monthData.calculatedAmount,
+                      paidAmount: monthData.paidAmount,
+                      outstandingAmount: monthData.outstandingAmount,
+                      isFullyPaid: monthData.isFullyPaid,
+                      paymentsCount: monthData.payments.length
+                    })
+                    
+                    if (monthData.payments.length > 0) {
+                      console.log('DEBUG: Payment details for selected month:', monthData.payments)
+                    }
                     
                     return (
                       <div className="space-y-4">
@@ -338,10 +406,10 @@ const TeacherPayments = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                   {monthData.payments.map(payment => (
+                                     
                                     <tr key={payment._id}>
                                       <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {/* {new Date(payment.paidDate || payment.date || payment.createdAt).toLocaleDateString()} */}
-                                        {payment.month}
+                                        {new Date(payment.paidDate || payment.date || payment.createdAt).toLocaleDateString()}
                                       </td>
                                       <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                         ₹{payment.amount.toLocaleString()}

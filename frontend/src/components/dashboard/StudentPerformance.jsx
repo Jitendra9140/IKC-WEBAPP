@@ -29,6 +29,7 @@ const StudentPerformance = () => {
       console.log('Marks Data:', marksData)
       marksData.forEach((mark, index) => {
         console.log(`Test ${index + 1}:`, mark.test?.topic || 'No topic found')
+        console.log(`Test ${index + 1} remarks:`, mark.teacherRemarks || 'No remarks found')
       })
       
       
@@ -41,7 +42,7 @@ const StudentPerformance = () => {
           date: mark.test?.testDate || new Date(),
           maxMarks: mark.totalMarks,
           obtainedMarks: mark.marksObtained,
-          teacherRemarks: mark.remarks || ''
+          teacherRemarks: mark.teacherRemarks || ''
         }))
 
         setTests(formattedTests)
@@ -135,7 +136,7 @@ const StudentPerformance = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {test.teacherRemarks ? test.teacherRemarks : "No remarks"}
+                  {test.teacherRemarks || "No remarks"}
                 </td>
               </tr>
             ))}
@@ -146,17 +147,24 @@ const StudentPerformance = () => {
       {/* Teacher Remarks */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-lg font-semibold mb-4">Teacher Remarks</h3>
-        <div className="space-y-4">
-          {tests.map((test) => (
-            <div key={test._id} className="p-4 border rounded-lg">
-              <div className="flex justify-between">
-                <div className="font-medium text-gray-900">{test.subject} - {test.topic}</div>
-                <div className="text-sm text-gray-500">{new Date(test.date).toLocaleDateString()}</div>
+        {tests.length > 0 ? (
+          <div className="space-y-4">
+            {tests.filter(test => test.teacherRemarks && test.teacherRemarks.trim() !== '').map((test) => (
+              <div key={test._id} className="p-4 border rounded-lg">
+                <div className="flex justify-between">
+                  <div className="font-medium text-gray-900">{test.subject} - {test.topic}</div>
+                  <div className="text-sm text-gray-500">{new Date(test.date).toLocaleDateString()}</div>
+                </div>
+                <div className="mt-2 text-gray-700">"{test.teacherRemarks}"</div>
               </div>
-              <div className="mt-2 text-gray-700">"{test.teacherRemarks}"</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4 text-gray-500">No remarks available</div>
+        )}
+        {tests.length > 0 && tests.filter(test => test.teacherRemarks && test.teacherRemarks.trim() !== '').length === 0 && (
+          <div className="text-center py-4 text-gray-500">No remarks available</div>
+        )}
       </div>
     </div>
   )

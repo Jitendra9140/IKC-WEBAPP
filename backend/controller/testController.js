@@ -1,5 +1,5 @@
 const Test = require('../models/Test');
-const Marks = require('../models/Marks');
+// Marks model removed as requested by user
 const User = require('../models/User');
 
 // Create a new test

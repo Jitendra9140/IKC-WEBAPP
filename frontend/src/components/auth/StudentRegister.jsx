@@ -20,7 +20,8 @@ const StudentRegister = () => {
     tenthPercentage: '',
     tenthBoard: '',
     tenthPassingYear: '',
-    overallFees: ''
+    overallFees: '',
+    gender: 'male' // Default gender
   })
 
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
@@ -80,7 +81,15 @@ const StudentRegister = () => {
         class: formData.class,
         section: formData.section,
         dob: new Date(formData.dateOfBirth).toISOString(),
-        overallFees: parseFloat(formData.overallFees) || 0
+        overallFees: parseFloat(formData.overallFees) || 0,
+        gender: formData.gender // Add gender field
+      }
+
+      // Add default avatar based on gender
+      if (formData.gender === 'male') {
+        studentData.imageUrl = '/images/default-boy-student.svg'
+      } else {
+        studentData.imageUrl = '/images/default-girl-student.svg'
       }
 
       // Add optional fields for 11th and 12th class students
@@ -133,6 +142,20 @@ const StudentRegister = () => {
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Gender</label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                required
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
             </div>
 
             <div>

@@ -11,35 +11,93 @@ export const adminService = {
 
   // Get all lectures with optional filters
   async getLectures(filters = {}) {
-    const { date, teacherId, classLevel, section } = filters;
+    const { date, teacherId, classLevel, section, subject } = filters;
     let url = '/lectures';
     
     // Add query parameters if filters are provided
     const params = {};
     if (date) params.date = date;
     if (teacherId) params.teacherId = teacherId;
-    if (classLevel) params.class = classLevel;
-    if (section) params.section = section;
+    if (classLevel) {
+      console.log('Setting class filter:', classLevel);
+      params.class = classLevel;
+    }
+    if (section) {
+      console.log('Setting section filter:', section);
+      params.section = section;
+    }
+    if (subject) {
+      console.log('Setting subject filter:', subject);
+      params.subject = subject;
+    }
     
-    return await api.get(url, { params });
+    console.log('API request URL:', url);
+    console.log('API request params:', params);
+    
+    try {
+      const response = await api.get(url, { params });
+      console.log('API response data length:', response.length);
+      return response;
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
   },
 
-  // Get all teachers
-  async getTeachers() {
-    return await api.get('/teachers');
+  // Get all teachers with optional filters
+  async getTeachers(filters = {}) {
+    const { subject, teachesClass, section } = filters;
+    let url = '/teachers';
+    
+    // Add query parameters if filters are provided
+    const params = {};
+    if (subject) {
+      console.log('Setting subject filter:', subject);
+      params.subject = subject;
+    }
+    if (teachesClass) {
+      console.log('Setting class filter:', teachesClass);
+      params.teachesClass = teachesClass;
+    }
+    if (section) {
+      console.log('Setting section filter:', section);
+      params.section = section;
+    }
+    
+    console.log('API request URL:', url);
+    console.log('API request params:', params);
+    
+    return await api.get(url, { params });
   },
 
   // Get all students with optional filters
   async getStudents(filters = {}) {
     const { classLevel, section } = filters;
-    let url = '/students';
+    let url = '/admin/students';
     
     // Add query parameters if filters are provided
     const params = {};
-    if (classLevel) params.class = classLevel;
-    if (section) params.section = section;
+    if (classLevel) {
+      console.log('Setting class filter:', classLevel);
+      // Important: Backend expects 'class' parameter, not 'classLevel'
+      params.class = classLevel;
+    }
+    if (section) {
+      console.log('Setting section filter:', section);
+      params.section = section;
+    }
     
-    return await api.get(url, { params });
+    console.log('API request URL:', url);
+    console.log('API request params:', params);
+    
+    try {
+      const response = await api.get(url, { params });
+      console.log('API response data:', response);
+      return response;
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
   },
 
   // Get all payments

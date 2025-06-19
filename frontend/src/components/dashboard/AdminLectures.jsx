@@ -18,22 +18,61 @@ const AdminLectures = () => {
     recent: []
   })
 
+  // Available filter options
+  const [filterOptions, setFilterOptions] = useState({
+    subjects: [],
+    sections: []
+  })
+
   useEffect(() => {
     const fetchLectures = async () => {
       try {
-        const data = await adminService.getLectures(filters)
-        setLectures(data)
-        categorizeLectures(data)
+        // First fetch all lectures to get filter options
+        if (filterOptions.subjects.length === 0 || filterOptions.sections.length === 0) {
+          console.log('Fetching all lectures for filter options');
+          const allData = await adminService.getLectures({});
+          extractFilterOptions(allData);
+        }
+        
+        // Then fetch filtered lectures
+        console.log('Fetching lectures with filters:', filters);
+        const data = await adminService.getLectures(filters);
+        console.log('Fetched lectures:', data.length);
+        setLectures(data);
+        categorizeLectures(data);
       } catch (err) {
-        setError('Failed to load lectures')
-        console.error(err)
+        setError('Failed to load lectures');
+        console.error(err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchLectures()
-  }, [filters])
+    fetchLectures();
+  }, [filters, filterOptions.subjects.length, filterOptions.sections.length]);
+
+  // Extract unique subjects and sections from lecture data
+  const extractFilterOptions = (lectureData) => {
+    console.log('Extracting filter options from', lectureData.length, 'lectures');
+    const subjects = new Set();
+    const sections = new Set();
+
+    lectureData.forEach(lecture => {
+      if (lecture.subject) subjects.add(lecture.subject);
+      if (lecture.section) sections.add(lecture.section);
+    });
+
+    const sortedSubjects = Array.from(subjects).sort();
+    const sortedSections = Array.from(sections).sort();
+    
+    console.log('Found subjects:', sortedSubjects);
+    console.log('Found sections:', sortedSections);
+    
+    setFilterOptions({
+      subjects: sortedSubjects,
+      sections: sortedSections
+    });
+  };
 
   // Function to categorize lectures based on date
   const categorizeLectures = (lectureData) => {
@@ -117,7 +156,7 @@ const AdminLectures = () => {
               <tr key={lecture._id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lecture.subject}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {lecture.teacherId?.name || 'Unknown'}
+                  {lecture.teacherId?.name || lecture.teacherName || 'Unknown Teacher'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lecture.class}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lecture.section}</td>
@@ -162,8 +201,9 @@ const AdminLectures = () => {
             className="border border-gray-300 rounded-md p-2"
           >
             <option value="">All Sections</option>
-            <option value="science">Science</option>
-            <option value="commerce">Commerce</option>
+            {filterOptions.sections.map(section => (
+              <option key={section} value={section}>{section}</option>
+            ))}
           </select>
           
           <select
@@ -173,11 +213,9 @@ const AdminLectures = () => {
             className="border border-gray-300 rounded-md p-2"
           >
             <option value="">All Subjects</option>
-            <option value="maths">Mathematics</option>
-            <option value="physics">Physics</option>
-            <option value="chemistry">Chemistry</option>
-            <option value="biology">Biology</option>
-            <option value="sp">SP</option>
+            {filterOptions.subjects.map(subject => (
+              <option key={subject} value={subject}>{subject}</option>
+            ))}
           </select>
         </div>
       </div>

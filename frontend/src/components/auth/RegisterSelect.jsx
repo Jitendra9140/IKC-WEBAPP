@@ -5,8 +5,7 @@ const RegisterSelect = () => {
 
   const roles = [
     { id: 'student', title: 'Student', icon: '👨‍🎓', bgColor: 'bg-blue-50 hover:bg-blue-100', borderColor: 'border-blue-200' },
-    { id: 'teacher', title: 'Teacher', icon: '👨‍🏫', bgColor: 'bg-green-50 hover:bg-green-100', borderColor: 'border-green-200' },
-    { id: 'admin', title: 'Admin', icon: '👨‍💼', bgColor: 'bg-purple-50 hover:bg-purple-100', borderColor: 'border-purple-200' }
+    { id: 'teacher', title: 'Teacher', icon: '👨‍🏫', bgColor: 'bg-green-50 hover:bg-green-100', borderColor: 'border-green-200' }
   ]
 
   return (
@@ -14,7 +13,7 @@ const RegisterSelect = () => {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Register as</h2>
         
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           {roles.map((role) => (
             <button
               key={role.id}

@@ -21,6 +21,14 @@ const LectureSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  topic: {
+    type: String,
+    default: ''
+  },
+  message: {
+    type: String,
+    default: ''
+  },
   date: {
     type: Date,
     required: true

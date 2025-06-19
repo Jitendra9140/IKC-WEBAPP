@@ -8,10 +8,18 @@ const studentSchema = new mongoose.Schema({
   schoolOrCollegeName: { type: String, required: true },
   class: { type: String, required: true },
   section: { type: String },
+  gender: { type: String, enum: ['male', 'female', 'other'] },
   admissionDate: { type: Date, default: Date.now },
   dob: { type: Date, required: true },
   imageUrl: { type: String },
-  overallFees: { type: Number, required: true },
+  overallFees: { 
+    type: Number, 
+    required: false,
+    default: function() {
+      // This will be calculated from fee structure in the controller
+      return 0;
+    }
+  },
   dueFees: { 
     type: Number, 
     default: function() {

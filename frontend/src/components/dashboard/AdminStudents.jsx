@@ -26,6 +26,7 @@ const AdminStudents = () => {
     const fetchAllStudents = async () => {
       try {
         const data = await adminService.getStudents()
+        console.log('All students loaded:', data)
         setAllStudents(data)
         
         // Extract unique classes and sections
@@ -36,6 +37,9 @@ const AdminStudents = () => {
           if (student.class) classes.add(student.class)
           if (student.section) sections.add(student.section)
         })
+        
+        console.log('Available classes:', Array.from(classes))
+        console.log('Available sections:', Array.from(sections))
         
         setAvailableClasses(Array.from(classes))
         setAvailableSections(Array.from(sections))
@@ -52,11 +56,13 @@ const AdminStudents = () => {
     const fetchStudents = async () => {
       try {
         setLoading(true)
+        console.log('Applying filters:', filters)
         const data = await adminService.getStudents(filters)
+        console.log('Filtered students result:', data)
         setStudents(data)
       } catch (err) {
         setError('Failed to load students')
-        console.error(err)
+        console.error('Error loading students:', err)
       } finally {
         setLoading(false)
       }
@@ -67,10 +73,20 @@ const AdminStudents = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    console.log(`Filter changed: ${name} = ${value}`)
+    setLoading(true)
+    
+    // Small timeout to ensure loading state is visible
+    setTimeout(() => {
+      setFilters(prev => {
+        const newFilters = {
+          ...prev,
+          [name]: value
+        }
+        console.log('New filters state:', newFilters)
+        return newFilters
+      })
+    }, 100)
   }
 
   const openDetailsModal = (student) => {
@@ -160,7 +176,12 @@ const AdminStudents = () => {
     setIsAttendanceModalOpen(false)
   }
 
-  if (loading) return <div className="text-center py-10">Loading students...</div>
+  if (loading) return (
+    <div className="text-center py-10">
+      <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-2"></div>
+      <p className="text-gray-600">Loading students...</p>
+    </div>
+  )
   if (error) return <div className="text-center py-10 text-red-600">{error}</div>
 
   return (
@@ -177,12 +198,12 @@ const AdminStudents = () => {
             <option value="">All Classes</option>
             {availableClasses.length > 0 ? (
               availableClasses.map(cls => (
-                <option key={cls} value={cls}>{cls}th</option>
+                <option key={cls} value={cls}>{cls}</option>
               ))
             ) : (
               <>
-                <option value="11">11th</option>
-                <option value="12">12th</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
               </>
             )}
           </select>
@@ -214,14 +235,18 @@ const AdminStudents = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {students.map(student => (
             <div key={student._id} className="bg-white rounded-lg shadow-lg p-6">
-              <img
-                src={student.imageUrl}
-                alt={student.name} 
-                className="w-24 h-24 rounded-full mx-auto object-cover"
-              />
-              <h3 className="text-lg font-semibold text-gray-900 mt-4 text-center">{student.name}</h3>
-              <div className="mt-2 text-sm text-gray-600">
-                <p><span className="font-medium">Class:</span> {student.class}th {student.section}</p>
+              <div className="flex items-center mb-4">
+                <img
+                  src={student.imageUrl}
+                  alt={student.name} 
+                  className="w-16 h-16 rounded-full object-cover mr-4"
+                />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{student.name}</h3>
+                  <p className="text-sm text-gray-600">Class {student.class} {student.section}</p>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">
                 <p><span className="font-medium">School/College:</span> {student.schoolOrCollegeName}</p>
                 <p><span className="font-medium">Contact:</span> {student.phone}</p>
                 <p><span className="font-medium">Due Fees:</span> ₹{student.dueFees}</p>
@@ -291,7 +316,7 @@ const AdminStudents = () => {
                         />
                         <div>
                           <p className="text-xl font-bold">{selectedStudent.name}</p>
-                          <p className="text-sm text-gray-500">Class {selectedStudent.class}th - {selectedStudent.section}</p>
+                          <p className="text-sm text-gray-500">Class {selectedStudent.class} - {selectedStudent.section}</p>
                         </div>
                       </Dialog.Title>
                       
@@ -390,7 +415,7 @@ const AdminStudents = () => {
                           />
                           <div>
                             <p className="text-xl font-bold">{selectedStudent.name} - Performance</p>
-                            <p className="text-sm text-gray-500">Class {selectedStudent.class}th - {selectedStudent.section}</p>
+                            <p className="text-sm text-gray-500">Class {selectedStudent.class} - {selectedStudent.section}</p>
                           </div>
                         </div>
                       </Dialog.Title>
@@ -566,7 +591,7 @@ const AdminStudents = () => {
                           />
                           <div>
                             <p className="text-xl font-bold">{selectedStudent.name} - Attendance</p>
-                            <p className="text-sm text-gray-500">Class {selectedStudent.class}th - {selectedStudent.section}</p>
+                            <p className="text-sm text-gray-500">Class {selectedStudent.class} - {selectedStudent.section}</p>
                           </div>
                         </div>
                       </Dialog.Title>

@@ -4,7 +4,7 @@ const teacherPaymentSchema = new mongoose.Schema({
   hours: { type: Number, required: true },
   amount: { type: Number, required: true },
   remarks: { type: String },
-  month: { type: String, required: true }, // e.g. "2024-06"
+  month: { type: String, required: true },
   paid: { type: Boolean, default: false },
   paidDate: { type: Date }
 }, {

@@ -20,9 +20,9 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="flex flex-row align-top h-screen h-full">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-sm flex-shrink-0">
+    <div className="flex flex-row align-top min-h-screen">
+      {/* Sidebar - Fixed */}
+      <div className="w-64 bg-white shadow-sm flex-shrink-0 fixed left-0 top-16 bottom-0 overflow-y-auto">
         <div className="p-4 border-b">
           <h2 className="text-xl font-semibold text-gray-800">Teacher Portal</h2>
         </div>
@@ -122,8 +122,8 @@ const TeacherDashboard = () => {
         </nav>
       </div>
 
-      {/* Dynamic inner content */}
-      <div className="flex-1 p-6 overflow-y-auto">
+      {/* Dynamic inner content - with margin for fixed sidebar */}
+      <div className="flex-1 p-6 ml-64 overflow-y-auto">
         <Outlet />
       </div>
     </div>

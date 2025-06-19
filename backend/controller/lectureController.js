@@ -34,10 +34,53 @@ const createLecture = async (req, res) => {
 // Get all lectures
 const getAllLectures = async (req, res) => {
   try {
-    const lectures = await Lecture.find()
+    console.log('Received query parameters:', req.query);
+    
+    // Build filter object based on query parameters
+    const filter = {};
+    
+    // Add filters if they exist in the query
+    if (req.query.class) {
+      filter.class = req.query.class;
+      console.log('Added class filter:', req.query.class);
+    }
+    if (req.query.section) {
+      filter.section = req.query.section;
+      console.log('Added section filter:', req.query.section);
+    }
+    if (req.query.subject) {
+      filter.subject = req.query.subject;
+      console.log('Added subject filter:', req.query.subject);
+    }
+    if (req.query.teacherId) {
+      filter.teacherId = req.query.teacherId;
+      console.log('Added teacherId filter:', req.query.teacherId);
+    }
+    if (req.query.date) {
+      const queryDate = new Date(req.query.date);
+      filter.date = {
+        $gte: new Date(queryDate.setHours(0, 0, 0, 0)),
+        $lt: new Date(queryDate.setHours(23, 59, 59, 999))
+      };
+      console.log('Added date filter:', req.query.date);
+    }
+    
+    console.log('Final lecture filters:', filter);
+    
+    const lectures = await Lecture.find(filter)
       .populate('teacherId', 'name');
+    
+    console.log(`Found ${lectures.length} lectures matching filters`);
+    
+    // Log unique subjects and sections in the result
+    const subjects = new Set(lectures.map(l => l.subject));
+    const sections = new Set(lectures.map(l => l.section));
+    console.log('Subjects in result:', Array.from(subjects));
+    console.log('Sections in result:', Array.from(sections));
+    
     res.json(lectures);
   } catch (err) {
+    console.error('Error fetching lectures:', err);
     res.status(500).json({ message: err.message });
   }
 };

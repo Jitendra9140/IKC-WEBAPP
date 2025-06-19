@@ -11,6 +11,8 @@ const TeacherSchedule = () => {
     class: '',
     section: '',
     subject: '',
+    topic: '',
+    message: '',
     date: '',
     time: '',
     duration: ''
@@ -106,6 +108,8 @@ console.log(subjects)
         class: '',
         section: '',
         subject: '',
+        topic: '',
+        message: '',
         date: '',
         time: '',
         duration: ''
@@ -119,8 +123,11 @@ console.log(subjects)
 
   if (loading) return <div>Loading...</div>
 
+  // Get unique class values to prevent duplicates in dropdown
+  const uniqueClasses = [...new Set(assignedClasses.map(c => c.class))];
+
   return (
-    <div className="space-y-6  flex flex-row">
+    <div className="space-y-6 flex flex-row">
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-xl font-semibold mb-4 text-black">Schedule New Lecture</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -135,9 +142,9 @@ console.log(subjects)
       required
     >
       <option value="">Select Class</option>
-      {assignedClasses.map((c, idx) => (
-        <option key={idx} value={c.class}>
-          Class {c.class}
+      {uniqueClasses.map((classValue) => (
+        <option key={classValue} value={classValue}>
+          Class {classValue}
         </option>
       ))}
     </select>
@@ -186,7 +193,16 @@ console.log(subjects)
       </select>
     </div>
 
-
+    <div>
+      <label className="block text-sm font-medium text-gray-700">Topic</label>
+      <input
+        type="text"
+        value={newLecture.topic}
+        onChange={(e) => setNewLecture({...newLecture, topic: e.target.value})}
+        className="mt-1 block w-full border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm p-2"
+        placeholder="Enter topic"
+      />
+    </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Date</label>
@@ -224,6 +240,17 @@ console.log(subjects)
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Message</label>
+            <textarea
+              value={newLecture.message}
+              onChange={(e) => setNewLecture({...newLecture, message: e.target.value})}
+              className="mt-1 block w-full border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm p-2"
+              rows="3"
+              placeholder="Enter additional information or instructions"
+            ></textarea>
+          </div>
+
           <div className="flex justify-end">
             <button
               type="submit"
@@ -235,7 +262,7 @@ console.log(subjects)
         </form>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 ml-6 flex-1">
         <h2 className="text-xl font-semibold text-black mb-4">Upcoming Lectures</h2>
         <div className="space-y-4">
           {lectures.map((lecture) => (
@@ -246,9 +273,19 @@ console.log(subjects)
                     {lecture.subject} - Class {lecture.class}
                     {lecture.section && ` ${lecture.section}`}
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  {lecture.topic && (
+                    <p className="text-sm text-gray-800 mt-1">
+                      <span className="font-medium">Topic:</span> {lecture.topic}
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-600 mt-1">
                     Duration: {lecture.duration} hours
                   </p>
+                  {lecture.message && (
+                    <p className="text-sm text-gray-700 mt-2 bg-gray-50 p-2 rounded">
+                      {lecture.message}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">

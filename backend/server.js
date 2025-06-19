@@ -58,6 +58,7 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/tests', require('./routes/tests'));
 app.use('/api/marks', require('./routes/marks'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin', require('./routes/adminCredentials'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/attendance',require('./routes/attendance'));
 

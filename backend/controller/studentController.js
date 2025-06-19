@@ -1,7 +1,7 @@
 const Student = require('../models/Student');
 const Lecture = require('../models/Lecture');
 const Payment = require('../models/Payment');
-const Marks = require('../models/Marks');
+// Marks model removed as requested by user
 const User = require('../models/User');
 const Test = require('../models/Test');
 
@@ -135,8 +135,28 @@ const getStudentPayments = async (req, res) => {
 // Get performance data for a student
 const getStudentPerformance = async (req, res) => {
   try {
-    const marks = await Marks.find({ studentId: req.params.id })
-      .populate('testId');
+    const studentId = req.params.id;
+    
+    // Find all tests that have marks for this student
+    const tests = await Test.find({
+      'studentMarks.studentId': studentId
+    });
+    
+    // Extract the student's marks from each test
+    const marks = tests.map(test => {
+      const studentMark = test.studentMarks.find(
+        mark => mark.studentId.toString() === studentId.toString()
+      );
+      
+      return {
+        subject: test.subject,
+        marksObtained: studentMark.marksObtained,
+        totalMarks: test.totalMarks,
+        testDate: test.testDate,
+        topic: test.topic,
+        testId: test._id
+      };
+    });
     
     // Group marks by subject
     const subjectPerformance = {};
@@ -155,8 +175,8 @@ const getStudentPerformance = async (req, res) => {
       subjectPerformance[mark.subject].totalObtained += mark.marksObtained;
       subjectPerformance[mark.subject].totalMax += mark.totalMarks;
       subjectPerformance[mark.subject].tests.push({
-        testId: mark.testId._id,
-        testDate: mark.testId.testDate,
+        testId: mark.testId,
+        testDate: mark.testDate,
         marksObtained: mark.marksObtained,
         totalMarks: mark.totalMarks,
         percentage: (mark.marksObtained / mark.totalMarks) * 100
