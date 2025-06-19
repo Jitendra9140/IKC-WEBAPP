@@ -114,7 +114,7 @@ const TeacherMarks = () => {
           }
           return mark
         })
-        showToast('Loaded existing marks', 'info')
+        showToast.info('Loaded existing marks')
       }
       
       setMarksData(initialMarksData)

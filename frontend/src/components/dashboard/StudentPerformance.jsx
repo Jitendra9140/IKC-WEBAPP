@@ -62,7 +62,7 @@ const StudentPerformance = () => {
       }
     } catch (error) {
       console.error('Error fetching marks:', error)
-      showToast('Failed to load performance data', 'error')
+      showToast.error('Failed to load performance data')
     } finally {
       setLoading(false)
     }

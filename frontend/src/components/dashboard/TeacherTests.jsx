@@ -34,9 +34,9 @@ const TeacherTests = () => {
       const profile = await teacherService.getProfile(teacherId)
       setAssignedClasses(profile.assignedClasses || [])
       setSubjects(profile.subjects || [])
-    } catch (err) {
-      console.error('Error fetching teacher profile:', err)
-      showToast('Failed to fetch teacher profile', 'error')
+    } catch (error) {
+      console.error('Error fetching teacher profile:', error)
+      showToast.error('Failed to fetch teacher profile')
     }
   }
 
@@ -53,7 +53,7 @@ const TeacherTests = () => {
       setTests(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching tests:', error)
-      showToast('Failed to load tests', 'error')
+      showToast.error('Failed to load tests')
     } finally {
       setLoading(false)
     }
@@ -64,7 +64,7 @@ const TeacherTests = () => {
     
     const teacherId = localStorage.getItem('userId')
     if (!teacherId) {
-      showToast('You must be logged in to create tests', 'error')
+      showToast.error('You must be logged in to create tests')
       return
     }
     
@@ -109,11 +109,11 @@ const TeacherTests = () => {
     if (window.confirm('Are you sure you want to delete this test?')) {
       try {
         await teacherService.deleteTest(testId)
-        showToast('Test deleted successfully', 'success')
+        showToast.success('Test deleted successfully')
         fetchTests()
       } catch (error) {
         console.error('Error deleting test:', error)
-        showToast('Failed to delete test', 'error')
+        showToast.error('Failed to delete test')
       }
     }
   }

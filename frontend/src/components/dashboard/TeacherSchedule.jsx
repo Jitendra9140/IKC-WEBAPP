@@ -40,7 +40,7 @@ const TeacherSchedule = () => {
 
       } catch (err) {
         console.error('Error fetching teacher profile:', err)
-        showToast('Failed to fetch teacher profile', 'error')
+        showToast.error('Failed to fetch teacher profile')
       }
     }
 

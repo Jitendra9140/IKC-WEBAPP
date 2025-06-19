@@ -114,7 +114,7 @@ const AdminStudents = () => {
       setPerformanceData(data)
     } catch (error) {
       console.error('Error fetching performance data:', error)
-      showToast('Failed to load performance data', 'error')
+      showToast.error('Failed to load performance data')
     } finally {
       setLoadingPerformance(false)
     }
@@ -158,11 +158,11 @@ const AdminStudents = () => {
       } else {
         // Unknown format
         console.error('Unknown data format:', data);
-        showToast('Attendance data format is unexpected', 'error');
+        showToast.error('Attendance data format is unexpected');
       }
     } catch (error) {
       console.error('Error fetching attendance data:', error);
-      showToast('Failed to load attendance data', 'error');
+      showToast.error('Failed to load attendance data');
     } finally {
       setLoadingAttendance(false);
     }

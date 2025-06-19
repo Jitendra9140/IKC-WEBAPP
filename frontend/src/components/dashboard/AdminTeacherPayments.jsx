@@ -248,14 +248,14 @@ const AdminTeacherPayments = () => {
 
     await adminService.createTeacherPayment(teacherId, paymentData);
 
-    showToast('success', `✅ Payment for ${monthData.month} settled successfully`);
+    showToast.success(`✅ Payment for ${monthData.month} settled successfully`);
     fetchTeacherData();  // Refresh data
 
   } catch (error) {
     if (error.message.includes('already been settled')) {
-      showToast('warning', `⚠️ Payment for ${monthData.month} has already been settled.`);
+      showToast.warning(`⚠️ Payment for ${monthData.month} has already been settled.`);
     } else {
-      showToast('error', '❌ Failed to settle payment');
+      showToast.error('❌ Failed to settle payment');
     }
     console.error(error);
   }

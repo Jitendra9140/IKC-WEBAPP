@@ -45,7 +45,7 @@ const AdminPayments = () => {
       // Navigate to student payment page with the selected student ID
       navigate(`/admin/student-payment/${selectedStudent}`)
     } else {
-      showToast('error', 'Please select a student')
+      showToast.error('Please select a student')
     }
   }
 
@@ -54,7 +54,7 @@ const AdminPayments = () => {
       // Navigate to teacher payment page with the selected teacher ID
       navigate(`/admin/teacher-payment/${selectedTeacher}`)
     } else {
-      showToast('error', 'Please select a teacher')
+      showToast.error('Please select a teacher')
     }
   }
 
