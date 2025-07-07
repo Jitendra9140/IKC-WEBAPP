@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react'
 import { teacherService } from '../../services/teacherService'
 import { showToast } from '../../utils/toast'
+import { Tab } from '@headlessui/react'
+import { formatDate } from '../../utils/dateUtils'
 
 const TeacherTests = () => {
   const [tests, setTests] = useState([])
+  const [scheduledTests, setScheduledTests] = useState([])
+  const [completedTests, setCompletedTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [assignedClasses, setAssignedClasses] = useState([])
   const [subjects, setSubjects] = useState([])
+  const [activeTab, setActiveTab] = useState(0)
   const [newTest, setNewTest] = useState({
     class: '',
     section: '',
@@ -50,7 +55,39 @@ const TeacherTests = () => {
       }
 
       const data = await teacherService.getTests(teacherId)
-      setTests(Array.isArray(data) ? data : [])
+      const allTests = Array.isArray(data) ? data : []
+      setTests(allTests)
+      
+      // Filter tests into scheduled and completed based on test date
+      const now = new Date()
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      
+      // Scheduled tests are those with test date in the future or today
+      const scheduled = allTests.filter(test => {
+        const testDate = new Date(test.testDate)
+        const testDay = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate())
+        return testDay >= today
+      })
+      
+      // Sort scheduled tests by date (earliest first)
+      scheduled.sort((a, b) => {
+        return new Date(a.testDate) - new Date(b.testDate)
+      })
+      
+      // Completed tests are those with test date in the past
+      const completed = allTests.filter(test => {
+        const testDate = new Date(test.testDate)
+        const testDay = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate())
+        return testDay < today
+      })
+      
+      // Sort completed tests by date (most recent first)
+      completed.sort((a, b) => {
+        return new Date(b.testDate) - new Date(a.testDate)
+      })
+      
+      setScheduledTests(scheduled)
+      setCompletedTests(completed)
     } catch (error) {
       console.error('Error fetching tests:', error)
       showToast.error('Failed to load tests')
@@ -246,46 +283,110 @@ const TeacherTests = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-6 ml-6 flex-1">
-        <h2 className="text-xl font-semibold text-black mb-4">Scheduled Tests</h2>
-        <div className="space-y-4">
-          {tests.length === 0 ? (
-            <p className="text-gray-500">No tests scheduled yet.</p>
-          ) : (
-            tests.map((test) => (
-              <div key={test._id} className="border rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium text-gray-900">
-                      {test.subject} - Class {test.class} {test.section}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Topic: {test.topic || 'Not specified'}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Total Marks: {test.totalMarks || 100}
-                    </p>
-                    {test.optionalSubject && (
-                      <p className="text-sm text-gray-600">
-                        Optional: {test.optionalSubject}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">
-                      {new Date(test.testDate).toLocaleDateString()}
-                    </p>
-                    <button
-                      onClick={() => handleDeleteTest(test._id)}
-                      className="text-red-600 text-sm mt-2 hover:text-red-800"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+        <Tab.Group selectedIndex={activeTab} onChange={setActiveTab}>
+          <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/10 p-1 mb-4">
+            <Tab 
+              className={({ selected }) =>
+                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${selected ? 'bg-white shadow' : 'text-blue-500 hover:bg-white/[0.12] hover:text-blue-700'}`
+              }
+            >
+              Scheduled Tests
+            </Tab>
+            <Tab 
+              className={({ selected }) =>
+                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${selected ? 'bg-white shadow' : 'text-blue-500 hover:bg-white/[0.12] hover:text-blue-700'}`
+              }
+            >
+              Completed Tests
+            </Tab>
+          </Tab.List>
+          <Tab.Panels>
+            <Tab.Panel>
+              <div className="space-y-4">
+                {scheduledTests.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No tests scheduled yet.</p>
+                ) : (
+                  scheduledTests.map((test) => (
+                    <div key={test._id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium text-gray-900">
+                            {test.subject} - Class {test.class} {test.section}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Topic: {test.topic || 'Not specified'}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Total Marks: {test.totalMarks || 100}
+                          </p>
+                          {test.optionalSubject && (
+                            <p className="text-sm text-gray-600">
+                              Optional: {test.optionalSubject}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">
+                            {formatDate(test.testDate)}
+                          </p>
+                          <button
+                            onClick={() => handleDeleteTest(test._id)}
+                            className="text-red-600 text-sm mt-2 hover:text-red-800"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            ))
-          )}
-        </div>
+            </Tab.Panel>
+            <Tab.Panel>
+              <div className="space-y-4">
+                {completedTests.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No completed tests found.</p>
+                ) : (
+                  completedTests.map((test) => (
+                    <div key={test._id} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium text-gray-900">
+                            {test.subject} - Class {test.class} {test.section}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Topic: {test.topic || 'Not specified'}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Total Marks: {test.totalMarks || 100}
+                          </p>
+                          {test.optionalSubject && (
+                            <p className="text-sm text-gray-600">
+                              Optional: {test.optionalSubject}
+                            </p>
+                          )}
+                          {test.studentMarks && test.studentMarks.length > 0 && (
+                            <p className="text-sm text-green-600 mt-1">
+                              {test.studentMarks.length} student(s) graded
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">
+                            {formatDate(test.testDate)}
+                          </p>
+                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Tab.Panel>
+          </Tab.Panels>
+        </Tab.Group>
       </div>
     </div>
   )

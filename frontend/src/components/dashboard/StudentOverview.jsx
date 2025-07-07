@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { studentService } from '../../services/studentService'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
+import { formatDate } from '../../utils/dateUtils'
 
 const StudentOverview = () => {
   const [loading, setLoading] = useState(true)
@@ -126,7 +127,7 @@ const StudentOverview = () => {
           <div className="ml-4">
             <h2 className="text-xl font-semibold text-gray-900">{studentInfo?.name}</h2>
             <p className="text-gray-600">
-              Class {studentInfo?.class} {studentInfo?.section} | Joined {studentInfo?.admissionDate.toLocaleDateString()}
+              Class {studentInfo?.class} {studentInfo?.section} | Joined {formatDate(studentInfo?.admissionDate)}
             </p>
           </div>
         </div>
@@ -174,7 +175,7 @@ const StudentOverview = () => {
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-medium text-gray-900">
-                    {new Date(lecture.date).toLocaleDateString()}, {lecture.time}
+                    {formatDate(lecture.date)}, {lecture.time}
                   </div>
                   <div className="text-sm text-gray-600">{lecture.duration} hours</div>
                 </div>

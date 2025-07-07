@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment } from 'react'
 import { adminService } from '../../services/adminService'
 import { Dialog, Transition } from '@headlessui/react'
 import { showToast } from '../../utils/toast'
+import { formatDate } from '../../utils/dateUtils'
 
 const AdminStudents = () => {
   const [students, setStudents] = useState([])
@@ -326,7 +327,7 @@ const AdminStudents = () => {
                           <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                             <p><span className="font-medium">Phone:</span> {selectedStudent.phone}</p>
                             <p><span className="font-medium">Parent Phone:</span> {selectedStudent.parentPhone}</p>
-                            <p><span className="font-medium">DOB:</span> {new Date(selectedStudent.dob).toLocaleDateString()}</p>
+                            <p><span className="font-medium">DOB:</span> {formatDate(selectedStudent.dob)}</p>
                             <p><span className="font-medium">Address:</span> {selectedStudent.address}</p>
                           </div>
                         </div>
@@ -335,7 +336,7 @@ const AdminStudents = () => {
                           <h4 className="font-medium text-gray-700">Academic Information</h4>
                           <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                             <p><span className="font-medium">School/College:</span> {selectedStudent.schoolOrCollegeName}</p>
-                            <p><span className="font-medium">Admission Date:</span> {new Date(selectedStudent.admissionDate).toLocaleDateString()}</p>
+                            <p><span className="font-medium">Admission Date:</span> {formatDate(selectedStudent.admissionDate)}</p>
                             {selectedStudent.tenthPercentage && (
                               <>
                                 <p><span className="font-medium">10th %:</span> {selectedStudent.tenthPercentage}%</p>
@@ -481,7 +482,7 @@ const AdminStudents = () => {
                                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{test.subject}</td>
                                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{test.topic}</td>
                                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {new Date(test.date).toLocaleDateString()}
+                                        {formatDate(test.date)}
                                       </td>
                                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {test.marksObtained}/{test.totalMarks}
@@ -679,7 +680,7 @@ const AdminStudents = () => {
                                     {attendanceData.records.map((record, index) => (
                                       <tr key={index}>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                          {new Date(record.date).toLocaleDateString()}
+                                          {formatDate(record.date)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                           {record.lecture.subject}

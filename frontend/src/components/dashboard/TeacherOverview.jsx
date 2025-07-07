@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { teacherService } from '../../services/teacherService'
+import { formatDate } from '../../utils/dateUtils'
 
 const TeacherOverview = () => {
   const [loading, setLoading] = useState(true)
@@ -157,7 +158,7 @@ const TeacherOverview = () => {
                 recentLectures.map(lecture => (
                   <tr key={lecture._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(lecture.date).toLocaleDateString()}
+                      {formatDate(lecture.date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {lecture.class} {lecture.section}
@@ -204,7 +205,7 @@ const TeacherOverview = () => {
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-medium text-gray-900">
-                    {new Date(lecture.date).toLocaleDateString()}, {lecture.time}
+                    {formatDate(lecture.date)}, {lecture.time}
                   </div>
                   <div className="text-sm text-gray-600">
                     {lecture.duration} hours

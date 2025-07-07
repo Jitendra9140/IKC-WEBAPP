@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { adminService } from '../../services/adminService'
 import { showToast } from '../../utils/toast'
 import { useParams } from 'react-router-dom'
+import { formatDate } from '../../utils/dateUtils'
 
 const AdminStudentPayments = () => {
   const { studentId } = useParams()
@@ -250,7 +251,7 @@ const AdminStudentPayments = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {new Date(payment.date).toLocaleDateString()}
+                            {formatDate(payment.date)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

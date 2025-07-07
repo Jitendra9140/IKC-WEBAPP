@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { adminService } from '../../services/adminService'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
+import { formatDate } from '../../utils/dateUtils'
 
 const AdminTeachers = () => {
   const [teachers, setTeachers] = useState([])
@@ -490,8 +491,8 @@ const AdminTeachers = () => {
                                               <p className="text-xl font-semibold text-green-600">₹{monthData.paidAmount.toLocaleString()}</p>
                                               {monthData.isFullyPaid && monthData.payments.length > 0 && (
                                                 <p className="text-xs text-gray-500 mt-1">
-                                                  Fully paid on {new Date(monthData.payments[monthData.payments.length - 1].paidDate || 
-                                                    monthData.payments[monthData.payments.length - 1].createdAt).toLocaleDateString()}
+                                                  Fully paid on {formatDate(monthData.payments[monthData.payments.length - 1].paidDate || 
+                                                    monthData.payments[monthData.payments.length - 1].createdAt)}
                                                 </p>
                                               )}
                                             </div>

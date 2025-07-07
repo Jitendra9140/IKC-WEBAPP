@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { teacherService } from '../../services/teacherService'
 import { showToast } from '../../utils/toast'
+import { formatDate } from '../../utils/dateUtils'
 
 
 const TeacherMarks = () => {
@@ -195,14 +196,7 @@ const TeacherMarks = () => {
     }
   }
 
-  // Helper function to format date
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
+  // Using the imported formatDate function from dateUtils.js
 
   if (loading) return <div className="flex justify-center items-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div></div>
 
@@ -221,7 +215,7 @@ const TeacherMarks = () => {
             <option value="">Select a Test</option>
             {unmarkedTests.map(test => (
               <option key={test._id} value={test._id}>
-                {test.subject} - Class {test.class} {test.section} - {new Date(test.testDate).toLocaleDateString()}
+                {test.subject} - Class {test.class} {test.section} - {formatDate(test.testDate)}
               </option>
             ))}
           </select>

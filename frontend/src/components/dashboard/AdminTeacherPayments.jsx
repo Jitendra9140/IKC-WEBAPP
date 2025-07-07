@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { adminService } from '../../services/adminService'
 import { showToast } from '../../utils/toast'
 import { useParams } from 'react-router-dom'
+import { formatDate } from '../../utils/dateUtils'
 
 const AdminTeacherPayments = () => {
   const { teacherId } = useParams()
@@ -368,8 +369,8 @@ const AdminTeacherPayments = () => {
                           <p className="text-xl font-semibold text-green-600">₹{monthData.paidAmount.toLocaleString()}</p>
                           {monthData.isFullyPaid && monthData.payments.length > 0 && (
                             <p className="text-xs text-gray-500 mt-1">
-                              Fully paid on {new Date(monthData.payments[monthData.payments.length - 1].paidDate || 
-                                monthData.payments[monthData.payments.length - 1].createdAt).toLocaleDateString()}
+                              Fully paid on {formatDate(monthData.payments[monthData.payments.length - 1].paidDate || 
+                                monthData.payments[monthData.payments.length - 1].createdAt)}
                             </p>
                           )}
                         </div>
@@ -418,7 +419,7 @@ const AdminTeacherPayments = () => {
                                 return (
                                   <tr key={lecture._id}>
                                     <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                                      {new Date(lecture.date).toLocaleDateString()}
+                                      {formatDate(lecture.date)}
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
                                       {lecture.class} {lecture.section}
@@ -457,7 +458,7 @@ const AdminTeacherPayments = () => {
                                 {monthData.payments.map(payment => (
                                   <tr key={payment._id}>
                                     <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                                      {new Date(payment.paidDate || payment.createdAt).toLocaleDateString()}
+                                      {formatDate(payment.paidDate || payment.createdAt)}
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                       ₹{payment.amount.toLocaleString()}
@@ -593,7 +594,7 @@ const AdminTeacherPayments = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {new Date(payment.paidDate || payment.createdAt).toLocaleDateString()}
+                    {formatDate(payment.paidDate || payment.createdAt)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

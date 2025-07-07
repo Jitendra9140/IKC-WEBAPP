@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { studentService } from '../../services/studentService'
+import { formatDate } from '../../utils/dateUtils'
 
 const StudentPayments = () => {
   const [payments, setPayments] = useState([])
@@ -156,7 +157,7 @@ const StudentPayments = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {new Date(payment.date).toLocaleDateString()}
+                            {formatDate(payment.date)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

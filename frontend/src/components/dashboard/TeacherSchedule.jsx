@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react'
 import { teacherService } from '../../services/teacherService'
 import { showToast } from '../../utils/toast'
+import { Tab } from '@headlessui/react'
+import { formatDate } from '../../utils/dateUtils'
 
 const TeacherSchedule = () => {
   const [lectures, setLectures] = useState([])
+  const [upcomingLectures, setUpcomingLectures] = useState([])
+  const [completedLectures, setCompletedLectures] = useState([])
   const [loading, setLoading] = useState(true)
   const [assignedClasses, setAssignedClasses] = useState([]) // ✅ You missed this
   const [subjects, setSubjects] = useState([]) // ✅ You missed this
+  const [activeTab, setActiveTab] = useState(0)
   const [newLecture, setNewLecture] = useState({
     class: '',
     section: '',
@@ -59,16 +64,81 @@ console.log(subjects)
         console.error('Teacher ID not found in localStorage');
         showToast.error('User ID not found. Please log in again.');
         setLectures([]);
+        setUpcomingLectures([]);
+        setCompletedLectures([]);
         setLoading(false);
         return;
       }
       
       const data = await teacherService.getLectures(teacherId);
-      setLectures(Array.isArray(data) ? data : []);
+      const allLectures = Array.isArray(data) ? data : [];
+      setLectures(allLectures);
+      
+      // Filter lectures into upcoming and completed
+      const now = new Date();
+      
+      // Filter upcoming lectures (future date or today but future time)
+      const upcoming = allLectures.filter(lecture => {
+        const lectureDate = new Date(lecture.date);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const lectureDay = new Date(lectureDate.getFullYear(), lectureDate.getMonth(), lectureDate.getDate());
+        
+        // If lecture date is in the future
+        if (lectureDay > today) return true;
+        
+        // If lecture is today, check the time
+        if (lectureDay.getTime() === today.getTime()) {
+          const [lectureHours, lectureMinutes] = lecture.time.split(':').map(Number);
+          const lectureTimeInMinutes = lectureHours * 60 + lectureMinutes;
+          const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+          
+          return lectureTimeInMinutes > currentTimeInMinutes;
+        }
+        
+        return false;
+      });
+      
+      // Sort upcoming lectures by date and time (earliest first)
+      upcoming.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        if (dateA.getTime() !== dateB.getTime()) return dateA - dateB;
+        
+        // If same date, sort by time
+        const [hoursA, minutesA] = a.time.split(':').map(Number);
+        const [hoursB, minutesB] = b.time.split(':').map(Number);
+        const timeA = hoursA * 60 + minutesA;
+        const timeB = hoursB * 60 + minutesB;
+        return timeA - timeB;
+      });
+      
+      // Completed lectures are those not in upcoming
+      const completed = allLectures.filter(lecture => {
+        return !upcoming.some(upcomingLecture => upcomingLecture._id === lecture._id);
+      });
+      
+      // Sort completed lectures by date and time (most recent first)
+      completed.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        if (dateA.getTime() !== dateB.getTime()) return dateB - dateA;
+        
+        // If same date, sort by time (latest first)
+        const [hoursA, minutesA] = a.time.split(':').map(Number);
+        const [hoursB, minutesB] = b.time.split(':').map(Number);
+        const timeA = hoursA * 60 + minutesA;
+        const timeB = hoursB * 60 + minutesB;
+        return timeB - timeA;
+      });
+      
+      setUpcomingLectures(upcoming);
+      setCompletedLectures(completed);
     } catch (error) {
       console.error('Error fetching lectures:', error);
       showToast.error('Failed to load lectures. Please try again.');
       setLectures([]);
+      setUpcomingLectures([]);
+      setCompletedLectures([]);
     }
     setLoading(false);
   };
@@ -263,43 +333,116 @@ console.log(subjects)
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-6 ml-6 flex-1">
-        <h2 className="text-xl font-semibold text-black mb-4">Upcoming Lectures</h2>
-        <div className="space-y-4">
-          {lectures.map((lecture) => (
-            <div key={lecture._id} className="border rounded-lg p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium text-gray-900">
-                    {lecture.subject} - Class {lecture.class}
-                    {lecture.section && ` ${lecture.section}`}
-                  </h3>
-                  {lecture.topic && (
-                    <p className="text-sm text-gray-800 mt-1">
-                      <span className="font-medium">Topic:</span> {lecture.topic}
-                    </p>
-                  )}
-                  <p className="text-sm text-gray-600 mt-1">
-                    Duration: {lecture.duration} hours
-                  </p>
-                  {lecture.message && (
-                    <p className="text-sm text-gray-700 mt-2 bg-gray-50 p-2 rounded">
-                      {lecture.message}
-                    </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">
-                    {new Date(lecture.date).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-600">{lecture.time}</p>
-                </div>
+        <Tab.Group selectedIndex={activeTab} onChange={setActiveTab}>
+          <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/10 p-1 mb-4">
+            <Tab 
+              className={({ selected }) =>
+                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${selected ? 'bg-white shadow' : 'text-blue-500 hover:bg-white/[0.12] hover:text-blue-700'}`
+              }
+            >
+              Upcoming Lectures
+            </Tab>
+            <Tab 
+              className={({ selected }) =>
+                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${selected ? 'bg-white shadow' : 'text-blue-500 hover:bg-white/[0.12] hover:text-blue-700'}`
+              }
+            >
+              Completed Lectures
+            </Tab>
+          </Tab.List>
+          <Tab.Panels>
+            <Tab.Panel>
+              <div className="space-y-4">
+                {upcomingLectures.length > 0 ? (
+                  upcomingLectures.map((lecture) => (
+                    <div key={lecture._id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium text-gray-900">
+                            {lecture.subject} - Class {lecture.class}
+                            {lecture.section && ` ${lecture.section}`}
+                          </h3>
+                          {lecture.topic && (
+                            <p className="text-sm text-gray-800 mt-1">
+                              <span className="font-medium">Topic:</span> {lecture.topic}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-600 mt-1">
+                            Duration: {lecture.duration} hours
+                          </p>
+                          {lecture.message && (
+                            <p className="text-sm text-gray-700 mt-2 bg-gray-50 p-2 rounded">
+                              {lecture.message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">
+                            {formatDate(lecture.date)}
+                          </p>
+                          <p className="text-sm text-gray-600">{lecture.time}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No upcoming lectures scheduled
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
-        </div>
+            </Tab.Panel>
+            <Tab.Panel>
+              <div className="space-y-4">
+                {completedLectures.length > 0 ? (
+                  completedLectures.map((lecture) => (
+                    <div key={lecture._id} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium text-gray-900">
+                            {lecture.subject} - Class {lecture.class}
+                            {lecture.section && ` ${lecture.section}`}
+                          </h3>
+                          {lecture.topic && (
+                            <p className="text-sm text-gray-800 mt-1">
+                              <span className="font-medium">Topic:</span> {lecture.topic}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-600 mt-1">
+                            Duration: {lecture.duration} hours
+                          </p>
+                          {lecture.message && (
+                            <p className="text-sm text-gray-700 mt-2 bg-gray-100 p-2 rounded">
+                              {lecture.message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">
+                            {formatDate(lecture.date)}
+                          </p>
+                          <p className="text-sm text-gray-600">{lecture.time}</p>
+                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No completed lectures found
+                  </div>
+                )}
+              </div>
+            </Tab.Panel>
+          </Tab.Panels>
+        </Tab.Group>
       </div>
     </div>
   )
 }
 
 export default TeacherSchedule
+
+      

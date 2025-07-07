@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { studentService } from '../../services/studentService'
 import { showToast } from '../../utils/toast'
+import { formatDate } from '../../utils/dateUtils'
 
 const StudentPerformance = () => {
   const [tests, setTests] = useState([])
@@ -39,7 +40,7 @@ const StudentPerformance = () => {
           _id: mark._id,
           subject: mark.subject,
           topic: mark.topic || 'Not specified',
-          date: mark.test?.testDate || new Date(),
+          date: mark.testDate || new Date(),
           maxMarks: mark.totalMarks,
           obtainedMarks: mark.marksObtained,
           teacherRemarks: mark.teacherRemarks || ''
@@ -117,7 +118,7 @@ const StudentPerformance = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{test.subject}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{test.topic}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(test.date).toLocaleDateString()}
+                  {formatDate(test.date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {test.obtainedMarks}/{test.maxMarks}
@@ -153,7 +154,7 @@ const StudentPerformance = () => {
               <div key={test._id} className="p-4 border rounded-lg">
                 <div className="flex justify-between">
                   <div className="font-medium text-gray-900">{test.subject} - {test.topic}</div>
-                  <div className="text-sm text-gray-500">{new Date(test.date).toLocaleDateString()}</div>
+                  <div className="text-sm text-gray-500">{formatDate(test.date)}</div>
                 </div>
                 <div className="mt-2 text-gray-700">"{test.teacherRemarks}"</div>
               </div>

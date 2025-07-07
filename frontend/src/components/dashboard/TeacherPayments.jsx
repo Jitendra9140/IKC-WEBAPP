@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { teacherService } from '../../services/teacherService'
 import { showToast } from '../../utils/toast'
+import { formatDate } from '../../utils/dateUtils'
 
 const TeacherPayments = () => {
   const [payments, setPayments] = useState([])
@@ -329,9 +330,9 @@ const TeacherPayments = () => {
                             <p className="text-xl font-semibold text-green-600">₹{monthData.paidAmount.toLocaleString()}</p>
                             {monthData.isFullyPaid && monthData.payments.length > 0 && (
                               <p className="text-xs text-gray-500 mt-1">
-                                Fully paid on {new Date(monthData.payments[monthData.payments.length - 1].paidDate || 
+                                Fully paid on {formatDate(monthData.payments[monthData.payments.length - 1].paidDate || 
                                   monthData.payments[monthData.payments.length - 1].date || 
-                                  monthData.payments[monthData.payments.length - 1].createdAt).toLocaleDateString()}
+                                  monthData.payments[monthData.payments.length - 1].createdAt)}
                               </p>
                             )}
                           </div>
@@ -369,7 +370,7 @@ const TeacherPayments = () => {
                                   return (
                                     <tr key={lecture._id}>
                                       <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(lecture.date).toLocaleDateString()}
+                                        {formatDate(lecture.date)}
                                       </td>
                                       <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
                                         {lecture.class} {lecture.section}
@@ -409,7 +410,9 @@ const TeacherPayments = () => {
                                      
                                     <tr key={payment._id}>
                                       <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(payment.paidDate || payment.date || payment.createdAt).toLocaleDateString()}
+                                        {payment.paidDate || payment.date || payment.createdAt ? 
+                                          formatDate(payment.paidDate || payment.date || payment.createdAt) : 
+                                          payment.month ? formatDate(payment.month + '-01') : '-'}
                                       </td>
                                       <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                         ₹{payment.amount.toLocaleString()}

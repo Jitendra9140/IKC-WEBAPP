@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
+const bcrypt = require('bcryptjs');
+const User = require('./models/User');
+const adminConfig = require('./config/adminConfig');
 
 dotenv.config();
 
@@ -46,8 +49,39 @@ app.get('/', (req, res) => {
 
 // ✅ Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {})
-  .then(() => console.log('✅ Connected to MongoDB'))
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+    // Initialize admin user in database if it doesn't exist
+    initializeAdminUser();
+  })
   .catch((err) => console.error('❌ MongoDB connection error:', err));
+
+// Function to ensure admin user exists in the database
+async function initializeAdminUser() {
+  try {
+    // Check if admin user exists in the database
+    const adminUser = await User.findOne({ role: 'admin' });
+    
+    if (!adminUser) {
+      // Create admin user in the database using config values
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(adminConfig.password, salt);
+      
+      const newAdminUser = new User({
+        username: adminConfig.username,
+        password: hashedPassword,
+        role: 'admin'
+      });
+      
+      await newAdminUser.save();
+      console.log('✅ Admin user initialized in database');
+    } else {
+      console.log('✅ Admin user already exists in database');
+    }
+  } catch (error) {
+    console.error('❌ Error initializing admin user:', error);
+  }
+}
 
 // ✅ API Routes
 app.use('/api/auth', require('./routes/auth'));

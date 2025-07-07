@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { adminService } from '../../services/adminService'
+import { formatDate } from '../../utils/dateUtils'
 
 const AdminLectures = () => {
   const [lectures, setLectures] = useState([])
@@ -161,7 +162,7 @@ const AdminLectures = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lecture.class}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lecture.section}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {new Date(lecture.date).toLocaleDateString()}
+                  {formatDate(lecture.date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lecture.time}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lecture.duration} hr</td>
@@ -180,14 +181,15 @@ const AdminLectures = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col justify-between ">
         <h1 className="text-2xl font-bold text-gray-900">Lectures</h1>
-        <div className="flex space-x-4">
+        <div className="flex flex-col md:flex-row justify-between">
+        <div className="flex space-x-4 mt-4 md:mt-0">
           <select
             name="classLevel"
             value={filters.classLevel}
             onChange={handleFilterChange}
-            className="border border-gray-300 rounded-md p-2"
+            className="px-1 py-1 text-xs border rounded-md bg-white shadow-sm hover:border-blue-400 focus:outline-none focus:border-blue-500 transition-colors w-24"
           >
             <option value="">All Classes</option>
             <option value="11">11th</option>
@@ -198,7 +200,7 @@ const AdminLectures = () => {
             name="section"
             value={filters.section}
             onChange={handleFilterChange}
-            className="border border-gray-300 rounded-md p-2"
+            className="px-1 py-1 text-xs border rounded-md bg-white shadow-sm hover:border-blue-400 focus:outline-none focus:border-blue-500 transition-colors w-24"
           >
             <option value="">All Sections</option>
             {filterOptions.sections.map(section => (
@@ -210,13 +212,14 @@ const AdminLectures = () => {
             name="subject"
             value={filters.subject}
             onChange={handleFilterChange}
-            className="border border-gray-300 rounded-md p-2"
+            className="px-1 py-1 text-xs border rounded-md bg-white shadow-sm hover:border-blue-400 focus:outline-none focus:border-blue-500 transition-colors w-24"
           >
             <option value="">All Subjects</option>
             {filterOptions.subjects.map(subject => (
               <option key={subject} value={subject}>{subject}</option>
             ))}
           </select>
+        </div>
         </div>
       </div>
 

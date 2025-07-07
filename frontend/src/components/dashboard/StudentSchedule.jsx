@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { studentService } from '../../services/studentService'
+import { formatDate } from '../../utils/dateUtils'
 
 const StudentSchedule = () => {
   const [lectures, setLectures] = useState([])
@@ -207,7 +208,7 @@ const StudentSchedule = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{new Date(lecture.date).toLocaleDateString()}</div>
+                      <div className="text-sm text-gray-900">{formatDate(lecture.date)}</div>
                       <div className="text-sm text-gray-500">{lecture.time}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -230,7 +231,7 @@ const StudentSchedule = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      Message for {lecture.subject} on {new Date(lecture.date).toLocaleDateString()}
+                      Message for {lecture.subject} on {formatDate(lecture.date)}
                     </p>
                     <p className="mt-1 text-sm text-gray-700">{lecture.message}</p>
                   </div>
@@ -270,7 +271,7 @@ const StudentSchedule = () => {
                       {test.topic}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{new Date(test.testDate).toLocaleDateString()}</div>
+                      <div className="text-sm text-gray-900">{formatDate(test.testDate)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {test.testDuration || 1} hours
